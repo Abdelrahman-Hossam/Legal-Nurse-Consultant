@@ -21,9 +21,66 @@ const ClientReports = () => {
         }
     };
 
-    const handleDownload = (reportId) => {
-        // Implement download logic
-        console.log('Downloading report:', reportId);
+    const handleViewReport = async (report) => {
+        try {
+            alert(`Report Details:\n\nTitle: ${report.title}\nType: ${report.type}\nCase: ${report.case?.caseNumber}\nGenerated: ${formatDate(report.createdAt)}\nStatus: ${report.status || 'Ready'}`);
+        } catch (error) {
+            console.error('Error viewing report:', error);
+            alert('Failed to view report details');
+        }
+    };
+
+    const handleDownload = async (reportId) => {
+        try {
+            const report = reports.find(r => r._id === reportId);
+            if (!report) {
+                alert('Report not found');
+                return;
+            }
+
+            // Create a simple text representation
+            const reportText = `
+${report.title}
+${'='.repeat(report.title.length)}
+
+Type: ${report.type}
+Case: ${report.case?.caseNumber}
+Generated: ${formatDate(report.createdAt)}
+Status: ${report.status || 'Ready'}
+
+This is a placeholder for the actual report content.
+In production, this would download the full PDF report.
+            `;
+
+            const blob = new Blob([reportText], { type: 'text/plain' });
+            const url = window.URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = `${report.title.replace(/\s+/g, '-')}.txt`;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            window.URL.revokeObjectURL(url);
+        } catch (error) {
+            console.error('Error downloading report:', error);
+            alert('Failed to download report');
+        }
+    };
+
+    const handleShareReport = async (reportId) => {
+        try {
+            const report = reports.find(r => r._id === reportId);
+            if (!report) {
+                alert('Report not found');
+                return;
+            }
+
+            // In production, this would open a share modal or generate a share link
+            alert(`Share Report\n\nReport: ${report.title}\n\nThis would allow you to:\n- Email the report\n- Generate a secure share link\n- Share with team members`);
+        } catch (error) {
+            console.error('Error sharing report:', error);
+            alert('Failed to share report');
+        }
     };
 
     const formatDate = (date) => {
@@ -108,7 +165,11 @@ const ClientReports = () => {
                                     <span className="material-icons text-sm">download</span>
                                     Download
                                 </button>
-                                <button className="px-4 py-2 border border-slate-200 dark:border-slate-700 rounded-lg font-medium text-sm hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">
+                                <button
+                                    onClick={() => handleViewReport(report)}
+                                    className="px-4 py-2 border border-slate-200 dark:border-slate-700 rounded-lg font-medium text-sm hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"
+                                    title="View Report"
+                                >
                                     <span className="material-icons text-sm">visibility</span>
                                 </button>
                             </div>

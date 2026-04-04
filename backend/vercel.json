@@ -11,5 +11,10 @@
             "src": "/(.*)",
             "dest": "server.js"
         }
-    ]
+    ],
+    "env": {
+        "NODE_ENV": "production",
+        "CORS_ORIGIN": "https://lcfrontend.vercel.app",
+        "FRONTEND_URL": "https://lcfrontend.vercel.app"
+    }
 }

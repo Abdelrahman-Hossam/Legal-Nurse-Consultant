@@ -77,9 +77,9 @@ const ClientDocuments = () => {
             for (let i = 0; i < files.length; i++) {
                 const file = files[i];
 
-                // Check file size (max 15MB for MongoDB - production ready)
-                if (file.size > 15 * 1024 * 1024) {
-                    alert(`File ${file.name} is too large. Maximum size is 15MB.`);
+                // Check file size limit (1MB for OCR processing)
+                if (file.size > 1024 * 1024) {
+                    alert(`File ${file.name} is too large (${(file.size / 1024 / 1024).toFixed(1)}MB). Maximum size is 1MB for OCR processing. Skipping this file.`);
                     continue;
                 }
 
@@ -96,9 +96,9 @@ const ClientDocuments = () => {
                 // Upload to backend
                 const recordData = {
                     case: uploadCase,
-                    fileName: file.name,
+                    fileName: file.name, // Keep original filename
                     fileType: fileType,
-                    fileSize: file.size,
+                    fileSize: file.size, // Use original size
                     fileUrl: `/uploads/${file.name}`, // Placeholder
                     fileData: base64Data, // Base64 encoded file
                     documentType: 'medical-record'
@@ -161,12 +161,6 @@ const ClientDocuments = () => {
         };
         const ext = fileType?.toLowerCase() || 'default';
         return icons[ext] || icons.default;
-    };
-
-    const formatFileSize = (bytes) => {
-        if (!bytes) return 'N/A';
-        const mb = bytes / (1024 * 1024);
-        return mb >= 1 ? `${mb.toFixed(1)} MB` : `${(bytes / 1024).toFixed(1)} KB`;
     };
 
     if (loading && documents.length === 0) {
@@ -302,7 +296,7 @@ const ClientDocuments = () => {
                                 </div>
                                 <div className="flex items-center gap-2 text-xs text-slate-500">
                                     <span className="material-icons text-sm">storage</span>
-                                    <span>{formatFileSize(doc.fileSize)}</span>
+                                    <span>{(doc.fileSize / 1024).toFixed(1)} KB</span>
                                 </div>
                             </div>
 
@@ -339,7 +333,7 @@ const ClientDocuments = () => {
                     </div>
                     <div className="flex items-start gap-2">
                         <span className="material-icons text-green-500 text-sm mt-0.5">check_circle</span>
-                        <span>Maximum file size: 100 MB per file</span>
+                        <span>Files larger than 1MB are automatically compressed for OCR processing</span>
                     </div>
                     <div className="flex items-start gap-2">
                         <span className="material-icons text-green-500 text-sm mt-0.5">check_circle</span>

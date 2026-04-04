@@ -50,6 +50,52 @@ const ClientBilling = () => {
     const paidAmount = invoices.filter(inv => inv.status === 'Paid').reduce((sum, inv) => sum + (inv.amount || 0), 0);
     const pendingAmount = invoices.filter(inv => inv.status === 'Pending').reduce((sum, inv) => sum + (inv.amount || 0), 0);
 
+    const handleViewInvoice = async (invoice) => {
+        try {
+            alert(`Invoice Details:\n\nInvoice: ${invoice.invoiceNumber}\nCase: ${invoice.case?.caseNumber}\nAmount: ${formatCurrency(invoice.amount)}\nStatus: ${invoice.status}\nDue Date: ${formatDate(invoice.dueDate)}`);
+        } catch (error) {
+            console.error('Error viewing invoice:', error);
+            alert('Failed to view invoice details');
+        }
+    };
+
+    const handleDownloadInvoice = async (invoice) => {
+        try {
+            const invoiceText = `
+INVOICE
+-----------------
+Invoice Number: ${invoice.invoiceNumber}
+Case: ${invoice.case?.caseNumber}
+Date: ${formatDate(invoice.createdAt)}
+Due Date: ${formatDate(invoice.dueDate)}
+Amount: ${formatCurrency(invoice.amount)}
+Status: ${invoice.status}
+            `;
+
+            const blob = new Blob([invoiceText], { type: 'text/plain' });
+            const url = window.URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = `invoice-${invoice.invoiceNumber}.txt`;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            window.URL.revokeObjectURL(url);
+        } catch (error) {
+            console.error('Error downloading invoice:', error);
+            alert('Failed to download invoice');
+        }
+    };
+
+    const handlePayNow = async (invoice) => {
+        try {
+            alert(`Payment Gateway\n\nInvoice: ${invoice.invoiceNumber}\nAmount Due: ${formatCurrency(invoice.amount)}\n\nThis would redirect to a secure payment processor.`);
+        } catch (error) {
+            console.error('Error processing payment:', error);
+            alert('Failed to process payment');
+        }
+    };
+
     if (loading) {
         return (
             <div>
@@ -159,14 +205,25 @@ const ClientBilling = () => {
                                     </td>
                                     <td className="px-6 py-4 text-right">
                                         <div className="flex items-center justify-end gap-2">
-                                            <button className="p-2 text-slate-400 hover:text-[#0891b2] transition-colors">
+                                            <button
+                                                onClick={() => handleViewInvoice(invoice)}
+                                                className="p-2 text-slate-400 hover:text-[#0891b2] transition-colors"
+                                                title="View Invoice"
+                                            >
                                                 <span className="material-icons text-sm">visibility</span>
                                             </button>
-                                            <button className="p-2 text-slate-400 hover:text-[#0891b2] transition-colors">
+                                            <button
+                                                onClick={() => handleDownloadInvoice(invoice)}
+                                                className="p-2 text-slate-400 hover:text-[#0891b2] transition-colors"
+                                                title="Download Invoice"
+                                            >
                                                 <span className="material-icons text-sm">download</span>
                                             </button>
                                             {invoice.status === 'Pending' && (
-                                                <button className="px-3 py-1 bg-[#0891b2] text-white rounded text-xs font-bold hover:bg-[#0891b2]/90 transition-colors">
+                                                <button
+                                                    onClick={() => handlePayNow(invoice)}
+                                                    className="px-3 py-1 bg-[#0891b2] text-white rounded text-xs font-bold hover:bg-[#0891b2]/90 transition-colors"
+                                                >
                                                     Pay Now
                                                 </button>
                                             )}

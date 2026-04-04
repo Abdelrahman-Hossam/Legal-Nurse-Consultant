@@ -1,0 +1,9 @@
+node_modules
+.env
+.env.local
+*.log
+temp/
+uploads/
+test-*.js
+*.md
+!README.md

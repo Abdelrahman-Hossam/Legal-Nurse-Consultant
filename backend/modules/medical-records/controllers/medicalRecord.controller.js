@@ -2,13 +2,15 @@ const MedicalRecord = require('../../../models/MedicalRecord.model');
 const AppError = require('../../../shared/errors/AppError');
 
 // Lazy load OCR service to avoid serverless issues
-let processOCRWithAPI;
+let processOCRWithAPI, convertPdfToPng;
 try {
     const ocrService = require('../services/ocr.service');
     processOCRWithAPI = ocrService.processOCRWithAPI;
+    convertPdfToPng = ocrService.convertPdfToPng;
 } catch (error) {
     console.warn('OCR service not available:', error.message);
     processOCRWithAPI = null;
+    convertPdfToPng = null;
 }
 
 // Get all medical records
@@ -162,10 +164,10 @@ async function processOCR(recordId) {
 
                 console.log(`[OCR] Processing ${record.fileName} (${mimeType}), size: ${record.fileSize} bytes`);
 
-                // Add timeout wrapper (30 seconds max)
+                // Add timeout wrapper (60 seconds max)
                 const ocrPromise = processOCRWithAPI(record.fileData, mimeType);
                 const timeoutPromise = new Promise((_, reject) =>
-                    setTimeout(() => reject(new Error('OCR timeout after 30 seconds')), 30000)
+                    setTimeout(() => reject(new Error('OCR timeout after 60 seconds')), 60000)
                 );
 
                 const ocrText = await Promise.race([ocrPromise, timeoutPromise]);

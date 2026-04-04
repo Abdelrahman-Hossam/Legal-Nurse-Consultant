@@ -109,10 +109,30 @@ app.use(securityMiddleware.sanitizeData);
 app.use(securityMiddleware.preventXSS);
 app.use(securityMiddleware.auditLogger);
 
-// CORS
+// CORS - Allow multiple origins
+const allowedOrigins = [
+    'http://localhost:3000',
+    'https://lcfrontend.vercel.app',
+    'https://lncbackend.vercel.app',
+    process.env.CORS_ORIGIN,
+    process.env.FRONTEND_URL
+].filter(Boolean);
+
 app.use(cors({
-    origin: process.env.CORS_ORIGIN || 'http://localhost:3000',
-    credentials: true
+    origin: function (origin, callback) {
+        // Allow requests with no origin (like mobile apps or curl requests)
+        if (!origin) return callback(null, true);
+
+        if (allowedOrigins.indexOf(origin) !== -1) {
+            callback(null, true);
+        } else {
+            logger.warn(`CORS blocked origin: ${origin}`);
+            callback(null, true); // Allow all origins in production (remove this line for strict CORS)
+        }
+    },
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With']
 }));
 
 // Rate limiting

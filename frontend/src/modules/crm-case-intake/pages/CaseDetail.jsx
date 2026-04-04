@@ -28,6 +28,11 @@ const CaseDetail = () => {
     // Timeline Modal
     const [showAddTimelineEvent, setShowAddTimelineEvent] = useState(false);
 
+    // OCR View Modal
+    const [viewOCRModal, setViewOCRModal] = useState(false);
+    const [selectedRecord, setSelectedRecord] = useState(null);
+    const [ocrText, setOcrText] = useState('');
+
     // Medical Records Modal
     const [showUploadModal, setShowUploadModal] = useState(false);
     const [uploadData, setUploadData] = useState({
@@ -324,11 +329,13 @@ const CaseDetail = () => {
             return;
         }
 
-        // Check file size (15MB limit)
-        if (uploadData.file.size > 15 * 1024 * 1024) {
-            alert('File size exceeds 15MB limit');
+        // Check file size limit (1MB for OCR processing)
+        if (uploadData.file.size > 1024 * 1024) {
+            alert('File size must be under 1MB for OCR processing. Please use a smaller file.');
             return;
         }
+
+        let fileToUpload = uploadData.file;
 
         try {
             setUploading(true);
@@ -344,7 +351,7 @@ const CaseDetail = () => {
                     fileType: uploadData.file.type.includes('pdf') ? 'pdf' :
                         (uploadData.file.type.includes('image') || uploadData.file.type.includes('jpeg') || uploadData.file.type.includes('png')) ? 'image' :
                             uploadData.file.type.includes('doc') ? 'doc' : 'other',
-                    fileSize: uploadData.file.size,
+                    fileSize: fileToUpload.size, // Use compressed file size
                     documentType: uploadData.documentType,
                     provider: uploadData.provider ? { name: uploadData.provider } : undefined,
                     recordDate: uploadData.recordDate || undefined,
@@ -382,7 +389,7 @@ const CaseDetail = () => {
                 setUploading(false);
             };
 
-            reader.readAsDataURL(uploadData.file);
+            reader.readAsDataURL(fileToUpload); // Use compressed file
         } catch (error) {
             console.error('Error processing file:', error);
             alert('Failed to process file. Please try again.');
@@ -522,6 +529,63 @@ const CaseDetail = () => {
         } catch (error) {
             console.error('Error adding timeline event:', error);
             alert('Failed to add event. Please try again.');
+        }
+    };
+
+    // Medical Record handlers
+    const handleViewRecord = async (record) => {
+        try {
+            // Fetch full record with OCR text
+            const response = await medicalRecordService.getRecordById(record._id);
+            const fullRecord = response.data?.record || response.record || response.data || response;
+
+            setSelectedRecord(fullRecord);
+            setOcrText(fullRecord.ocrText || 'No OCR text available');
+            setViewOCRModal(true);
+        } catch (error) {
+            console.error('Error viewing record:', error);
+            alert('Failed to view record: ' + (error.response?.data?.message || error.message));
+        }
+    };
+
+    const handleDownloadRecord = async (record) => {
+        try {
+            const response = await medicalRecordService.downloadRecord(record._id);
+
+            if (response.data?.fileData) {
+                // Convert base64 to blob and download
+                let base64Data = response.data.fileData;
+
+                // Remove data URL prefix if present
+                if (base64Data.includes(',')) {
+                    base64Data = base64Data.split(',')[1];
+                }
+
+                const mimeType = response.data.fileType || record.mimeType || 'application/octet-stream';
+                const byteCharacters = atob(base64Data);
+                const byteNumbers = new Array(byteCharacters.length);
+                for (let i = 0; i < byteCharacters.length; i++) {
+                    byteNumbers[i] = byteCharacters.charCodeAt(i);
+                }
+                const byteArray = new Uint8Array(byteNumbers);
+                const blob = new Blob([byteArray], { type: mimeType });
+                const url = URL.createObjectURL(blob);
+
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = response.data.fileName || record.fileName || 'download';
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+            } else if (response.data?.fileUrl) {
+                window.open(response.data.fileUrl, '_blank');
+            } else {
+                alert('File not available for download');
+            }
+        } catch (error) {
+            console.error('Error downloading record:', error);
+            alert('Failed to download record: ' + (error.response?.data?.message || error.message));
         }
     };
 
@@ -727,55 +791,65 @@ const CaseDetail = () => {
                                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#0891b2]"></div>
                             </div>
                         ) : medicalRecords.length > 0 ? (
-                            <div className="overflow-x-auto">
-                                <table className="w-full">
-                                    <thead className="bg-slate-50 dark:bg-slate-800/50 text-[10px] font-bold uppercase text-slate-400">
-                                        <tr>
-                                            <th className="px-6 py-3 text-left">File Name</th>
-                                            <th className="px-6 py-3 text-left">Type</th>
-                                            <th className="px-6 py-3 text-left">Provider</th>
-                                            <th className="px-6 py-3 text-left">Date</th>
-                                            <th className="px-6 py-3 text-left">Status</th>
-                                            <th className="px-6 py-3 text-right">Actions</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
-                                        {medicalRecords.map((record) => (
-                                            <tr key={record._id} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/30 transition-colors">
-                                                <td className="px-6 py-4">
-                                                    <div className="flex items-center gap-2">
-                                                        <span className="material-icons text-slate-400 text-sm">description</span>
-                                                        <span className="text-sm font-medium">{record.fileName}</span>
-                                                    </div>
-                                                </td>
-                                                <td className="px-6 py-4 text-sm capitalize">{record.documentType || record.fileType}</td>
-                                                <td className="px-6 py-4 text-sm">{record.provider?.name || 'N/A'}</td>
-                                                <td className="px-6 py-4 text-sm">
-                                                    {record.recordDate ? new Date(record.recordDate).toLocaleDateString() : new Date(record.createdAt).toLocaleDateString()}
-                                                </td>
-                                                <td className="px-6 py-4">
-                                                    <span className={`px-2 py-1 rounded-full text-xs font-bold ${record.ocrStatus === 'completed' ? 'bg-green-100 text-green-700' :
-                                                        record.ocrStatus === 'processing' ? 'bg-yellow-100 text-yellow-700' :
-                                                            record.ocrStatus === 'failed' ? 'bg-red-100 text-red-700' :
-                                                                'bg-slate-100 text-slate-700'
-                                                        }`}>
-                                                        {record.ocrStatus || 'Pending'}
-                                                    </span>
-                                                </td>
-                                                <td className="px-6 py-4">
-                                                    <div className="flex items-center justify-end gap-2">
-                                                        <button className="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors" title="View">
-                                                            <span className="material-icons text-slate-400 hover:text-[#0891b2] text-lg">visibility</span>
-                                                        </button>
-                                                        <button className="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors" title="Download">
-                                                            <span className="material-icons text-slate-400 hover:text-[#0891b2] text-lg">download</span>
-                                                        </button>
-                                                    </div>
-                                                </td>
+                            <div className="bg-white dark:bg-slate-900 rounded-xl border-2 border-slate-200 dark:border-slate-700 shadow-md overflow-hidden">
+                                <div className="overflow-x-auto">
+                                    <table className="w-full">
+                                        <thead className="bg-slate-50 dark:bg-slate-800/50 text-[10px] font-bold uppercase text-slate-400 border-b-2 border-slate-200 dark:border-slate-700">
+                                            <tr>
+                                                <th className="px-6 py-3 text-left">File Name</th>
+                                                <th className="px-6 py-3 text-left">Type</th>
+                                                <th className="px-6 py-3 text-left">Provider</th>
+                                                <th className="px-6 py-3 text-left">Date</th>
+                                                <th className="px-6 py-3 text-left">Status</th>
+                                                <th className="px-6 py-3 text-right">Actions</th>
                                             </tr>
-                                        ))}
-                                    </tbody>
-                                </table>
+                                        </thead>
+                                        <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+                                            {medicalRecords.map((record) => (
+                                                <tr key={record._id} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/30 transition-colors">
+                                                    <td className="px-6 py-4">
+                                                        <div className="flex items-center gap-2">
+                                                            <span className="material-icons text-slate-400 text-sm">description</span>
+                                                            <span className="text-sm font-medium">{record.fileName}</span>
+                                                        </div>
+                                                    </td>
+                                                    <td className="px-6 py-4 text-sm capitalize">{record.documentType || record.fileType}</td>
+                                                    <td className="px-6 py-4 text-sm">{record.provider?.name || 'N/A'}</td>
+                                                    <td className="px-6 py-4 text-sm">
+                                                        {record.recordDate ? new Date(record.recordDate).toLocaleDateString() : new Date(record.createdAt).toLocaleDateString()}
+                                                    </td>
+                                                    <td className="px-6 py-4">
+                                                        <span className={`px-2 py-1 rounded-full text-xs font-bold ${record.ocrStatus === 'completed' ? 'bg-green-100 text-green-700' :
+                                                            record.ocrStatus === 'processing' ? 'bg-yellow-100 text-yellow-700' :
+                                                                record.ocrStatus === 'failed' ? 'bg-red-100 text-red-700' :
+                                                                    'bg-slate-100 text-slate-700'
+                                                            }`}>
+                                                            {record.ocrStatus || 'Pending'}
+                                                        </span>
+                                                    </td>
+                                                    <td className="px-6 py-4">
+                                                        <div className="flex items-center justify-end gap-2">
+                                                            <button
+                                                                onClick={() => handleViewRecord(record)}
+                                                                className="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors"
+                                                                title="View"
+                                                            >
+                                                                <span className="material-icons text-slate-400 hover:text-[#0891b2] text-lg">visibility</span>
+                                                            </button>
+                                                            <button
+                                                                onClick={() => handleDownloadRecord(record)}
+                                                                className="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors"
+                                                                title="Download"
+                                                            >
+                                                                <span className="material-icons text-slate-400 hover:text-[#0891b2] text-lg">download</span>
+                                                            </button>
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                            ))}
+                                        </tbody>
+                                    </table>
+                                </div>
                             </div>
                         ) : (
                             <div className="text-center py-12 text-slate-500">
@@ -793,7 +867,7 @@ const CaseDetail = () => {
                                 className="flex items-center gap-2 px-4 py-2 bg-[#0891b2] text-white rounded-lg hover:bg-teal-700 transition-colors"
                             >
                                 <span className="material-icons text-sm">add</span>
-                                Create Timeline
+                                Add Event
                             </button>
                         </div>
                         {tabLoading ? (
@@ -801,45 +875,53 @@ const CaseDetail = () => {
                                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#0891b2]"></div>
                             </div>
                         ) : timelineEvents.length > 0 ? (
-                            <div className="space-y-4">
-                                {timelineEvents.sort((a, b) => new Date(a.date) - new Date(b.date)).map((event, idx) => (
-                                    <div key={event._id || idx} className="bg-white dark:bg-slate-900 border-l-4 border-[#0891b2] rounded-lg p-4 shadow-sm">
-                                        <div className="flex items-start justify-between mb-2">
-                                            <div className="flex-1">
-                                                <div className="flex items-center gap-2 mb-1">
-                                                    <span className={`px-2 py-1 rounded text-xs font-bold capitalize ${event.category === 'treatment' ? 'bg-blue-100 text-blue-800' :
-                                                        event.category === 'medication' ? 'bg-purple-100 text-purple-800' :
-                                                            event.category === 'lab' ? 'bg-green-100 text-green-800' :
-                                                                event.category === 'imaging' ? 'bg-yellow-100 text-yellow-800' :
-                                                                    event.category === 'consultation' ? 'bg-pink-100 text-pink-800' :
-                                                                        event.category === 'procedure' ? 'bg-red-100 text-red-800' :
-                                                                            'bg-gray-100 text-gray-800'
-                                                        }`}>
-                                                        {event.category}
-                                                    </span>
-                                                    <span className="text-xs text-slate-500">
-                                                        {new Date(event.date).toLocaleDateString()}
-                                                        {event.time && ` at ${event.time}`}
-                                                    </span>
-                                                </div>
-                                                <h4 className="text-sm font-bold text-slate-900 dark:text-white">{event.title}</h4>
-                                                {event.description && (
-                                                    <p className="text-sm text-slate-600 dark:text-slate-400 mt-1">{event.description}</p>
-                                                )}
-                                                {event.provider && (
-                                                    <div className="mt-2 text-xs text-slate-500">
-                                                        {event.provider.name && <span>Provider: {event.provider.name}</span>}
-                                                        {event.provider.facility && <span> • Facility: {event.provider.facility}</span>}
+                            <div className="bg-white dark:bg-slate-900 rounded-xl border-2 border-slate-200 dark:border-slate-700 shadow-md p-6">
+                                <div className="relative space-y-4">
+                                    {timelineEvents.sort((a, b) => new Date(a.date) - new Date(b.date)).map((event, idx) => (
+                                        <div key={event._id || idx} className="relative pl-8 pb-8 border-l-4 border-[#0891b2] last:pb-0">
+                                            <div className="absolute -left-2 top-0 w-4 h-4 rounded-full bg-[#0891b2] border-4 border-white dark:border-slate-900"></div>
+                                            <div className="bg-slate-50 dark:bg-slate-800 rounded-lg p-4 ml-4 hover:shadow-md transition-shadow">
+                                                <div className="flex items-start justify-between mb-2">
+                                                    <div className="flex-1">
+                                                        <div className="flex items-center gap-2 mb-1">
+                                                            <span className={`px-2 py-1 rounded text-xs font-bold capitalize ${event.category === 'treatment' ? 'bg-blue-100 text-blue-800' :
+                                                                event.category === 'medication' ? 'bg-purple-100 text-purple-800' :
+                                                                    event.category === 'lab' ? 'bg-green-100 text-green-800' :
+                                                                        event.category === 'imaging' ? 'bg-yellow-100 text-yellow-800' :
+                                                                            event.category === 'consultation' ? 'bg-pink-100 text-pink-800' :
+                                                                                event.category === 'procedure' ? 'bg-red-100 text-red-800' :
+                                                                                    'bg-gray-100 text-gray-800'
+                                                                }`}>
+                                                                {event.category}
+                                                            </span>
+                                                            <span className="text-xs text-slate-500 font-medium">
+                                                                {new Date(event.date).toLocaleDateString()}
+                                                                {event.time && ` at ${event.time}`}
+                                                            </span>
+                                                        </div>
+                                                        <h4 className="text-sm font-bold text-slate-900 dark:text-white">{event.title}</h4>
+                                                        {event.description && (
+                                                            <p className="text-sm text-slate-600 dark:text-slate-400 mt-1">{event.description}</p>
+                                                        )}
+                                                        {(event.provider?.name || event.provider?.facility) && (
+                                                            <div className="mt-2 text-xs text-slate-500">
+                                                                {event.provider.name && <span>Provider: {event.provider.name}</span>}
+                                                                {event.provider.facility && <span> • Facility: {event.provider.facility}</span>}
+                                                            </div>
+                                                        )}
                                                     </div>
-                                                )}
+                                                </div>
                                             </div>
                                         </div>
-                                    </div>
-                                ))}
+                                    ))}
+                                </div>
                             </div>
                         ) : (
-                            <div className="text-center py-12 text-slate-500">
-                                No timeline events yet. Add an event to get started.
+                            <div className="bg-white dark:bg-slate-900 rounded-xl border-2 border-slate-200 dark:border-slate-700 shadow-md p-12">
+                                <div className="text-center text-slate-500">
+                                    <span className="material-icons text-6xl text-slate-300 mb-4">timeline</span>
+                                    <p>No timeline events yet. Add an event to get started.</p>
+                                </div>
                             </div>
                         )}
                     </div>
@@ -867,7 +949,7 @@ const CaseDetail = () => {
                                         <h4 className="text-md font-bold mb-4">Identified Deviations</h4>
                                         <div className="space-y-3">
                                             {analysis.breaches.map((breach, idx) => (
-                                                <div key={idx} className="border border-slate-200 dark:border-slate-800 rounded-lg p-4 hover:shadow-md transition-shadow">
+                                                <div key={idx} className="bg-white dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-700 rounded-lg p-4 hover:shadow-md transition-shadow">
                                                     <div className="flex items-start justify-between mb-2">
                                                         <h5 className="text-sm font-bold text-slate-900 dark:text-white">{breach.description}</h5>
                                                         <span className={`px-2 py-1 rounded-full text-xs font-bold ${breach.severity === 'high' ? 'bg-red-100 text-red-700' :
@@ -889,25 +971,27 @@ const CaseDetail = () => {
                                 {analysis.standardsOfCare && analysis.standardsOfCare.length > 0 && (
                                     <div>
                                         <h4 className="text-md font-bold mb-4">Standards of Care</h4>
-                                        <div className="overflow-x-auto">
-                                            <table className="w-full">
-                                                <thead className="bg-slate-50 dark:bg-slate-800/50 text-[10px] font-bold uppercase text-slate-400">
-                                                    <tr>
-                                                        <th className="px-6 py-3 text-left">Category</th>
-                                                        <th className="px-6 py-3 text-left">Standard</th>
-                                                        <th className="px-6 py-3 text-left">Assessment</th>
-                                                    </tr>
-                                                </thead>
-                                                <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
-                                                    {analysis.standardsOfCare.map((item, idx) => (
-                                                        <tr key={idx} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/30 transition-colors">
-                                                            <td className="px-6 py-4 text-sm font-semibold">{item.category}</td>
-                                                            <td className="px-6 py-4 text-sm">{item.standard}</td>
-                                                            <td className="px-6 py-4 text-sm">{item.assessment}</td>
+                                        <div className="bg-white dark:bg-slate-900 rounded-xl border-2 border-slate-200 dark:border-slate-700 shadow-md overflow-hidden">
+                                            <div className="overflow-x-auto">
+                                                <table className="w-full">
+                                                    <thead className="bg-slate-50 dark:bg-slate-800/50 text-[10px] font-bold uppercase text-slate-400 border-b-2 border-slate-200 dark:border-slate-700">
+                                                        <tr>
+                                                            <th className="px-6 py-3 text-left">Category</th>
+                                                            <th className="px-6 py-3 text-left">Standard</th>
+                                                            <th className="px-6 py-3 text-left">Assessment</th>
                                                         </tr>
-                                                    ))}
-                                                </tbody>
-                                            </table>
+                                                    </thead>
+                                                    <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+                                                        {analysis.standardsOfCare.map((item, idx) => (
+                                                            <tr key={idx} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/30 transition-colors">
+                                                                <td className="px-6 py-4 text-sm font-semibold">{item.category}</td>
+                                                                <td className="px-6 py-4 text-sm">{item.standard}</td>
+                                                                <td className="px-6 py-4 text-sm">{item.assessment}</td>
+                                                            </tr>
+                                                        ))}
+                                                    </tbody>
+                                                </table>
+                                            </div>
                                         </div>
                                     </div>
                                 )}
@@ -936,44 +1020,46 @@ const CaseDetail = () => {
                                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#0891b2]"></div>
                             </div>
                         ) : damages.length > 0 ? (
-                            <div className="overflow-x-auto">
-                                <table className="w-full">
-                                    <thead className="bg-slate-50 dark:bg-slate-800/50 text-[10px] font-bold uppercase text-slate-400">
-                                        <tr>
-                                            <th className="px-6 py-3 text-left">Category</th>
-                                            <th className="px-6 py-3 text-left">Description</th>
-                                            <th className="px-6 py-3 text-left">Date</th>
-                                            <th className="px-6 py-3 text-left">Amount</th>
-                                            <th className="px-6 py-3 text-left">Status</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
-                                        {damages.map((item) => (
-                                            <tr key={item._id} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/30 transition-colors">
-                                                <td className="px-6 py-4">
-                                                    <span className="text-sm font-semibold capitalize">{item.category}</span>
-                                                    {item.type && <p className="text-xs text-slate-500">{item.type}</p>}
-                                                </td>
-                                                <td className="px-6 py-4 text-sm">{item.description}</td>
-                                                <td className="px-6 py-4 text-sm">
-                                                    {item.dateIncurred ? new Date(item.dateIncurred).toLocaleDateString() : 'N/A'}
-                                                </td>
-                                                <td className="px-6 py-4">
-                                                    <span className="text-sm font-bold">${(item.amount || 0).toLocaleString()}</span>
-                                                </td>
-                                                <td className="px-6 py-4">
-                                                    <span className={`px-2 py-1 rounded-full text-xs font-bold capitalize ${item.status === 'verified' ? 'bg-green-100 text-green-700' :
-                                                        item.status === 'documented' ? 'bg-blue-100 text-blue-700' :
-                                                            item.status === 'estimated' ? 'bg-yellow-100 text-yellow-700' :
-                                                                'bg-red-100 text-red-700'
-                                                        }`}>
-                                                        {item.status}
-                                                    </span>
-                                                </td>
+                            <div className="bg-white dark:bg-slate-900 rounded-xl border-2 border-slate-200 dark:border-slate-700 shadow-md overflow-hidden">
+                                <div className="overflow-x-auto">
+                                    <table className="w-full">
+                                        <thead className="bg-slate-50 dark:bg-slate-800/50 text-[10px] font-bold uppercase text-slate-400 border-b-2 border-slate-200 dark:border-slate-700">
+                                            <tr>
+                                                <th className="px-6 py-3 text-left">Category</th>
+                                                <th className="px-6 py-3 text-left">Description</th>
+                                                <th className="px-6 py-3 text-left">Date</th>
+                                                <th className="px-6 py-3 text-left">Amount</th>
+                                                <th className="px-6 py-3 text-left">Status</th>
                                             </tr>
-                                        ))}
-                                    </tbody>
-                                </table>
+                                        </thead>
+                                        <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+                                            {damages.map((item) => (
+                                                <tr key={item._id} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/30 transition-colors">
+                                                    <td className="px-6 py-4">
+                                                        <span className="text-sm font-semibold capitalize">{item.category}</span>
+                                                        {item.type && <p className="text-xs text-slate-500">{item.type}</p>}
+                                                    </td>
+                                                    <td className="px-6 py-4 text-sm">{item.description}</td>
+                                                    <td className="px-6 py-4 text-sm">
+                                                        {item.dateIncurred ? new Date(item.dateIncurred).toLocaleDateString() : 'N/A'}
+                                                    </td>
+                                                    <td className="px-6 py-4">
+                                                        <span className="text-sm font-bold">${(item.amount || 0).toLocaleString()}</span>
+                                                    </td>
+                                                    <td className="px-6 py-4">
+                                                        <span className={`px-2 py-1 rounded-full text-xs font-bold capitalize ${item.status === 'verified' ? 'bg-green-100 text-green-700' :
+                                                            item.status === 'documented' ? 'bg-blue-100 text-blue-700' :
+                                                                item.status === 'estimated' ? 'bg-yellow-100 text-yellow-700' :
+                                                                    'bg-red-100 text-red-700'
+                                                            }`}>
+                                                            {item.status}
+                                                        </span>
+                                                    </td>
+                                                </tr>
+                                            ))}
+                                        </tbody>
+                                    </table>
+                                </div>
                             </div>
                         ) : (
                             <div className="text-center py-12 text-slate-500">
@@ -999,48 +1085,50 @@ const CaseDetail = () => {
                                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#0891b2]"></div>
                             </div>
                         ) : tasks.length > 0 ? (
-                            <div className="overflow-x-auto">
-                                <table className="w-full">
-                                    <thead className="bg-slate-50 dark:bg-slate-800/50 text-[10px] font-bold uppercase text-slate-400">
-                                        <tr>
-                                            <th className="px-6 py-3 text-left">Task</th>
-                                            <th className="px-6 py-3 text-left">Assigned To</th>
-                                            <th className="px-6 py-3 text-left">Due Date</th>
-                                            <th className="px-6 py-3 text-left">Priority</th>
-                                            <th className="px-6 py-3 text-left">Status</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
-                                        {tasks.map((task) => (
-                                            <tr key={task._id} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/30 transition-colors">
-                                                <td className="px-6 py-4">
-                                                    <div className="text-sm font-semibold">{task.title}</div>
-                                                    <div className="text-xs text-slate-500">{task.description}</div>
-                                                </td>
-                                                <td className="px-6 py-4 text-sm">{task.assignedTo?.name || task.assignedTo?.email || 'Unassigned'}</td>
-                                                <td className="px-6 py-4 text-sm">
-                                                    {task.dueDate ? new Date(task.dueDate).toLocaleDateString() : 'No due date'}
-                                                </td>
-                                                <td className="px-6 py-4">
-                                                    <span className={`px-2 py-1 rounded-full text-xs font-bold ${task.priority === 'high' ? 'bg-red-100 text-red-700' :
-                                                        task.priority === 'medium' ? 'bg-yellow-100 text-yellow-700' :
-                                                            'bg-blue-100 text-blue-700'
-                                                        }`}>
-                                                        {task.priority}
-                                                    </span>
-                                                </td>
-                                                <td className="px-6 py-4">
-                                                    <span className={`px-2 py-1 rounded-full text-xs font-bold ${task.status === 'completed' ? 'bg-green-100 text-green-700' :
-                                                        task.status === 'in-progress' ? 'bg-blue-100 text-blue-700' :
-                                                            'bg-slate-100 text-slate-700'
-                                                        }`}>
-                                                        {task.status}
-                                                    </span>
-                                                </td>
+                            <div className="bg-white dark:bg-slate-900 rounded-xl border-2 border-slate-200 dark:border-slate-700 shadow-md overflow-hidden">
+                                <div className="overflow-x-auto">
+                                    <table className="w-full">
+                                        <thead className="bg-slate-50 dark:bg-slate-800/50 text-[10px] font-bold uppercase text-slate-400 border-b-2 border-slate-200 dark:border-slate-700">
+                                            <tr>
+                                                <th className="px-6 py-3 text-left">Task</th>
+                                                <th className="px-6 py-3 text-left">Assigned To</th>
+                                                <th className="px-6 py-3 text-left">Due Date</th>
+                                                <th className="px-6 py-3 text-left">Priority</th>
+                                                <th className="px-6 py-3 text-left">Status</th>
                                             </tr>
-                                        ))}
-                                    </tbody>
-                                </table>
+                                        </thead>
+                                        <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+                                            {tasks.map((task) => (
+                                                <tr key={task._id} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/30 transition-colors">
+                                                    <td className="px-6 py-4">
+                                                        <div className="text-sm font-semibold">{task.title}</div>
+                                                        <div className="text-xs text-slate-500">{task.description}</div>
+                                                    </td>
+                                                    <td className="px-6 py-4 text-sm">{task.assignedTo?.name || task.assignedTo?.email || 'Unassigned'}</td>
+                                                    <td className="px-6 py-4 text-sm">
+                                                        {task.dueDate ? new Date(task.dueDate).toLocaleDateString() : 'No due date'}
+                                                    </td>
+                                                    <td className="px-6 py-4">
+                                                        <span className={`px-2 py-1 rounded-full text-xs font-bold ${task.priority === 'high' ? 'bg-red-100 text-red-700' :
+                                                            task.priority === 'medium' ? 'bg-yellow-100 text-yellow-700' :
+                                                                'bg-blue-100 text-blue-700'
+                                                            }`}>
+                                                            {task.priority}
+                                                        </span>
+                                                    </td>
+                                                    <td className="px-6 py-4">
+                                                        <span className={`px-2 py-1 rounded-full text-xs font-bold ${task.status === 'completed' ? 'bg-green-100 text-green-700' :
+                                                            task.status === 'in-progress' ? 'bg-blue-100 text-blue-700' :
+                                                                'bg-slate-100 text-slate-700'
+                                                            }`}>
+                                                            {task.status}
+                                                        </span>
+                                                    </td>
+                                                </tr>
+                                            ))}
+                                        </tbody>
+                                    </table>
+                                </div>
                             </div>
                         ) : (
                             <div className="text-center py-12 text-slate-500">
@@ -1068,7 +1156,7 @@ const CaseDetail = () => {
                         ) : notes.length > 0 ? (
                             <div className="grid grid-cols-1 gap-4">
                                 {notes.map((note) => (
-                                    <div key={note._id} className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg p-4 hover:shadow-md transition-shadow">
+                                    <div key={note._id} className="bg-white dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-700 rounded-lg p-4 hover:shadow-md transition-shadow">
                                         <div className="flex items-start justify-between mb-2">
                                             <div className="flex-1">
                                                 <h4 className="text-sm font-bold text-slate-900 dark:text-white">{note.title}</h4>
@@ -1579,6 +1667,74 @@ const CaseDetail = () => {
                                 </button>
                             </div>
                         </form>
+                    </div>
+                </div>
+            )}
+
+            {/* View OCR Modal */}
+            {viewOCRModal && selectedRecord && (
+                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+                    <div className="bg-white dark:bg-slate-800 rounded-xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-hidden flex flex-col">
+                        <div className="px-6 py-4 border-b border-slate-200 dark:border-slate-700 flex items-center justify-between">
+                            <div>
+                                <h2 className="text-xl font-bold text-slate-900 dark:text-white">
+                                    OCR Extracted Text
+                                </h2>
+                                <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
+                                    {selectedRecord.fileName}
+                                </p>
+                            </div>
+                            <button
+                                onClick={() => {
+                                    setViewOCRModal(false);
+                                    setSelectedRecord(null);
+                                    setOcrText('');
+                                }}
+                                className="p-2 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg transition-colors"
+                            >
+                                <span className="material-icons text-slate-500">close</span>
+                            </button>
+                        </div>
+                        <div className="flex-1 overflow-y-auto p-6">
+                            <div className="bg-slate-50 dark:bg-slate-900 rounded-lg p-4 border border-slate-200 dark:border-slate-700">
+                                <div className="flex items-center gap-2 mb-3">
+                                    <span className={`px-2 py-1 rounded text-xs font-medium ${selectedRecord.ocrStatus === 'completed' ? 'bg-green-100 text-green-700' :
+                                        selectedRecord.ocrStatus === 'processing' ? 'bg-blue-100 text-blue-700' :
+                                            selectedRecord.ocrStatus === 'failed' ? 'bg-red-100 text-red-700' :
+                                                'bg-yellow-100 text-yellow-700'
+                                        }`}>
+                                        {selectedRecord.ocrStatus?.toUpperCase() || 'PENDING'}
+                                    </span>
+                                    {selectedRecord.ocrProcessedAt && (
+                                        <span className="text-xs text-slate-500">
+                                            Processed: {new Date(selectedRecord.ocrProcessedAt).toLocaleDateString()}
+                                        </span>
+                                    )}
+                                </div>
+                                <pre className="whitespace-pre-wrap text-sm text-slate-700 dark:text-slate-300 font-mono">
+                                    {ocrText}
+                                </pre>
+                            </div>
+                        </div>
+                        <div className="px-6 py-4 border-t border-slate-200 dark:border-slate-700 flex gap-3">
+                            <button
+                                onClick={() => handleDownloadRecord(selectedRecord)}
+                                className="flex-1 px-4 py-2.5 bg-[#0891b2] hover:bg-teal-700 text-white rounded-lg transition-colors font-semibold flex items-center justify-center gap-2"
+                            >
+                                <span className="material-icons text-sm">download</span>
+                                Download File
+                            </button>
+                            <button
+                                onClick={() => {
+                                    setViewOCRModal(false);
+                                    setSelectedRecord(null);
+                                    setOcrText('');
+                                }}
+                                className="flex-1 px-4 py-2.5 border-2 border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-300 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors font-semibold"
+                            >
+                                Close
+                            </button>
+                        </div>
                     </div>
                 </div>
             )}

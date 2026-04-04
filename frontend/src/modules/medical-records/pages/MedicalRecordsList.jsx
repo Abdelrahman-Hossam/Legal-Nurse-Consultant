@@ -132,12 +132,6 @@ const MedicalRecordsList = () => {
         }
     };
 
-    const formatFileSize = (bytes) => {
-        if (bytes < 1024) return bytes + ' B';
-        if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
-        return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
-    };
-
     const formatDate = (dateString) => {
         return new Date(dateString).toLocaleDateString();
     };
@@ -164,11 +158,13 @@ const MedicalRecordsList = () => {
             return;
         }
 
-        // Check file size (15MB limit)
-        if (uploadData.file.size > 15 * 1024 * 1024) {
-            alert('File size exceeds 15MB limit');
+        // Check file size limit (1MB for OCR processing)
+        if (uploadData.file.size > 1024 * 1024) {
+            alert('File size must be under 1MB for OCR processing. Please use a smaller file.');
             return;
         }
+
+        let fileToUpload = uploadData.file;
 
         try {
             setUploading(true);
@@ -180,11 +176,11 @@ const MedicalRecordsList = () => {
 
                 const recordData = {
                     case: uploadData.case,
-                    fileName: uploadData.file.name,
+                    fileName: uploadData.file.name, // Keep original filename
                     fileType: uploadData.file.type.includes('pdf') ? 'pdf' :
                         (uploadData.file.type.includes('image') || uploadData.file.type.includes('jpeg') || uploadData.file.type.includes('png')) ? 'image' :
                             uploadData.file.type.includes('doc') ? 'doc' : 'other',
-                    fileSize: uploadData.file.size,
+                    fileSize: fileToUpload.size, // Use compressed file size
                     documentType: uploadData.documentType,
                     provider: uploadData.provider ? { name: uploadData.provider } : undefined,
                     recordDate: uploadData.recordDate || undefined,
@@ -222,7 +218,7 @@ const MedicalRecordsList = () => {
                 setUploading(false);
             };
 
-            reader.readAsDataURL(uploadData.file);
+            reader.readAsDataURL(fileToUpload); // Use compressed file
         } catch (error) {
             console.error('Error processing file:', error);
             alert('Failed to process file. Please try again.');
@@ -356,7 +352,7 @@ const MedicalRecordsList = () => {
                                                 <span className="material-icons text-red-500 mr-3">picture_as_pdf</span>
                                                 <div>
                                                     <div className="text-sm font-semibold text-slate-900 dark:text-white">{record.fileName}</div>
-                                                    <div className="text-xs text-slate-500">{formatFileSize(record.fileSize)} • {record.pageCount} pages</div>
+                                                    <div className="text-xs text-slate-500">{(record.fileSize / 1024).toFixed(1)} KB • {record.pageCount} pages</div>
                                                 </div>
                                             </div>
                                         </td>
@@ -648,9 +644,9 @@ const MedicalRecordsList = () => {
                             <div className="bg-slate-50 dark:bg-slate-900 rounded-lg p-4 border border-slate-200 dark:border-slate-700">
                                 <div className="flex items-center gap-2 mb-3">
                                     <span className={`px-2 py-1 rounded text-xs font-medium ${selectedRecord.ocrStatus === 'completed' ? 'bg-green-100 text-green-700' :
-                                            selectedRecord.ocrStatus === 'processing' ? 'bg-blue-100 text-blue-700' :
-                                                selectedRecord.ocrStatus === 'failed' ? 'bg-red-100 text-red-700' :
-                                                    'bg-yellow-100 text-yellow-700'
+                                        selectedRecord.ocrStatus === 'processing' ? 'bg-blue-100 text-blue-700' :
+                                            selectedRecord.ocrStatus === 'failed' ? 'bg-red-100 text-red-700' :
+                                                'bg-yellow-100 text-yellow-700'
                                         }`}>
                                         {selectedRecord.ocrStatus?.toUpperCase() || 'PENDING'}
                                     </span>

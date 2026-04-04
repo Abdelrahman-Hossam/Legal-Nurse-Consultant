@@ -10,7 +10,7 @@ const CaseAnalysis = () => {
     const [analysis, setAnalysis] = useState(null);
     const [loading, setLoading] = useState(false);
     const [showAddModal, setShowAddModal] = useState(false);
-    const [findingType, setFindingType] = useState('standard'); // 'standard' or 'deviation'
+    const [findingType, setFindingType] = useState('standard'); // 'standard', 'deviation', 'high-severity', or 'standards-met'
     const [formData, setFormData] = useState({
         category: '',
         standard: '',
@@ -115,7 +115,7 @@ const CaseAnalysis = () => {
             setSubmitting(true);
             const payload = {
                 caseId: selectedCase,
-                ...(findingType === 'standard' ? {
+                ...(findingType === 'standard' || findingType === 'standards-met' ? {
                     standardsOfCare: [{
                         category: formData.category,
                         standard: formData.standard,
@@ -125,7 +125,7 @@ const CaseAnalysis = () => {
                 } : {
                     breaches: [{
                         description: formData.description,
-                        severity: formData.severity,
+                        severity: findingType === 'high-severity' ? 'high' : formData.severity,
                         impact: formData.impact,
                         date: formData.date
                     }]
@@ -172,11 +172,11 @@ const CaseAnalysis = () => {
             </div>
 
             {/* Case Selector */}
-            <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm p-6 mb-6">
+            <div className="bg-white dark:bg-slate-900 rounded-xl border-2 border-slate-200 dark:border-slate-700 shadow-md p-6 mb-6">
                 <div className="flex items-center gap-4">
                     <label className="text-sm font-medium">Select Case:</label>
                     <select
-                        className="flex-1 max-w-md px-4 py-2.5 border border-slate-200 dark:border-slate-700 rounded-lg bg-slate-50 dark:bg-slate-800 focus:ring-2 focus:ring-[#0891b2] outline-none"
+                        className="flex-1 max-w-md px-4 py-2.5 border-2 border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-800 focus:ring-2 focus:ring-[#0891b2] focus:border-[#0891b2] outline-none"
                         value={selectedCase}
                         onChange={(e) => setSelectedCase(e.target.value)}
                     >
@@ -201,7 +201,7 @@ const CaseAnalysis = () => {
             {/* Stats Cards */}
             {!loading && analysis && (
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-                    <div className="bg-white dark:bg-slate-900 p-6 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm">
+                    <div className="bg-white dark:bg-slate-900 p-6 rounded-xl border-2 border-slate-200 dark:border-slate-700 shadow-md hover:shadow-lg transition-shadow">
                         <div className="flex items-center gap-3 mb-2">
                             <div className="w-10 h-10 rounded-lg bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center">
                                 <span className="material-icons text-blue-600">rule</span>
@@ -212,7 +212,7 @@ const CaseAnalysis = () => {
                             </div>
                         </div>
                     </div>
-                    <div className="bg-white dark:bg-slate-900 p-6 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm">
+                    <div className="bg-white dark:bg-slate-900 p-6 rounded-xl border-2 border-slate-200 dark:border-slate-700 shadow-md hover:shadow-lg transition-shadow">
                         <div className="flex items-center gap-3 mb-2">
                             <div className="w-10 h-10 rounded-lg bg-red-100 dark:bg-red-900/30 flex items-center justify-center">
                                 <span className="material-icons text-red-600">warning</span>
@@ -223,7 +223,7 @@ const CaseAnalysis = () => {
                             </div>
                         </div>
                     </div>
-                    <div className="bg-white dark:bg-slate-900 p-6 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm">
+                    <div className="bg-white dark:bg-slate-900 p-6 rounded-xl border-2 border-slate-200 dark:border-slate-700 shadow-md hover:shadow-lg transition-shadow">
                         <div className="flex items-center gap-3 mb-2">
                             <div className="w-10 h-10 rounded-lg bg-yellow-100 dark:bg-yellow-900/30 flex items-center justify-center">
                                 <span className="material-icons text-yellow-600">priority_high</span>
@@ -234,7 +234,7 @@ const CaseAnalysis = () => {
                             </div>
                         </div>
                     </div>
-                    <div className="bg-white dark:bg-slate-900 p-6 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm">
+                    <div className="bg-white dark:bg-slate-900 p-6 rounded-xl border-2 border-slate-200 dark:border-slate-700 shadow-md hover:shadow-lg transition-shadow">
                         <div className="flex items-center gap-3 mb-2">
                             <div className="w-10 h-10 rounded-lg bg-green-100 dark:bg-green-900/30 flex items-center justify-center">
                                 <span className="material-icons text-green-600">check_circle</span>
@@ -249,7 +249,7 @@ const CaseAnalysis = () => {
             )}
 
             {/* Tabs */}
-            <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm mb-6">
+            <div className="bg-white dark:bg-slate-900 rounded-xl border-2 border-slate-200 dark:border-slate-700 shadow-md mb-6">
                 <div className="border-b border-slate-200 dark:border-slate-800 px-6">
                     <div className="flex gap-6">
                         <button
@@ -391,32 +391,56 @@ const CaseAnalysis = () => {
                                     <button
                                         type="button"
                                         onClick={() => setFindingType('standard')}
-                                        className={`p-4 rounded-lg border-2 transition-all ${findingType === 'standard'
-                                            ? 'border-[#0891b2] bg-[#0891b2]/10'
-                                            : 'border-slate-200 dark:border-slate-700 hover:border-slate-300'
+                                        className={`p-4 rounded-lg border-2 transition-all shadow-sm bg-white dark:bg-slate-900 ${findingType === 'standard'
+                                            ? 'border-[#0891b2] ring-2 ring-[#0891b2]/20'
+                                            : 'border-slate-300 dark:border-slate-600 hover:border-[#0891b2] hover:shadow-md'
                                             }`}
                                     >
                                         <span className="material-icons text-2xl mb-2 text-[#0891b2]">check_circle</span>
-                                        <p className="font-semibold text-sm">Standard of Care</p>
+                                        <p className="font-semibold text-sm text-slate-900 dark:text-white">Standard of Care</p>
                                         <p className="text-xs text-slate-500 mt-1">Document expected standards</p>
                                     </button>
                                     <button
                                         type="button"
                                         onClick={() => setFindingType('deviation')}
-                                        className={`p-4 rounded-lg border-2 transition-all ${findingType === 'deviation'
-                                            ? 'border-red-500 bg-red-50 dark:bg-red-900/20'
-                                            : 'border-slate-200 dark:border-slate-700 hover:border-slate-300'
+                                        className={`p-4 rounded-lg border-2 transition-all shadow-sm bg-white dark:bg-slate-900 ${findingType === 'deviation'
+                                            ? 'border-red-500 ring-2 ring-red-500/20'
+                                            : 'border-slate-300 dark:border-slate-600 hover:border-red-500 hover:shadow-md'
                                             }`}
                                     >
                                         <span className="material-icons text-2xl mb-2 text-red-500">warning</span>
-                                        <p className="font-semibold text-sm">Deviation</p>
+                                        <p className="font-semibold text-sm text-slate-900 dark:text-white">Deviation</p>
                                         <p className="text-xs text-slate-500 mt-1">Document breaches found</p>
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={() => setFindingType('high-severity')}
+                                        className={`p-4 rounded-lg border-2 transition-all shadow-sm bg-white dark:bg-slate-900 ${findingType === 'high-severity'
+                                            ? 'border-yellow-500 ring-2 ring-yellow-500/20'
+                                            : 'border-slate-300 dark:border-slate-600 hover:border-yellow-500 hover:shadow-md'
+                                            }`}
+                                    >
+                                        <span className="material-icons text-2xl mb-2 text-yellow-500">priority_high</span>
+                                        <p className="font-semibold text-sm text-slate-900 dark:text-white">High Severity</p>
+                                        <p className="text-xs text-slate-500 mt-1">Critical deviations</p>
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={() => setFindingType('standards-met')}
+                                        className={`p-4 rounded-lg border-2 transition-all shadow-sm bg-white dark:bg-slate-900 ${findingType === 'standards-met'
+                                            ? 'border-green-500 ring-2 ring-green-500/20'
+                                            : 'border-slate-300 dark:border-slate-600 hover:border-green-500 hover:shadow-md'
+                                            }`}
+                                    >
+                                        <span className="material-icons text-2xl mb-2 text-green-500">verified</span>
+                                        <p className="font-semibold text-sm text-slate-900 dark:text-white">Standards Met</p>
+                                        <p className="text-xs text-slate-500 mt-1">Compliant findings</p>
                                     </button>
                                 </div>
                             </div>
 
                             {/* Standard of Care Form */}
-                            {findingType === 'standard' && (
+                            {(findingType === 'standard' || findingType === 'standards-met') && (
                                 <>
                                     <div>
                                         <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
@@ -501,7 +525,7 @@ const CaseAnalysis = () => {
                             )}
 
                             {/* Deviation Form */}
-                            {findingType === 'deviation' && (
+                            {(findingType === 'deviation' || findingType === 'high-severity') && (
                                 <>
                                     <div>
                                         <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">

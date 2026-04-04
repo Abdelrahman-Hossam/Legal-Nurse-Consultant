@@ -44,6 +44,24 @@ const ReportsPage = () => {
             window.open(response.data.fileUrl, '_blank');
         } catch (error) {
             console.error('Error downloading report:', error);
+            alert('Failed to download report');
+        }
+    };
+
+    const handleShareReport = async (reportId) => {
+        try {
+            const report = recentReports.find(r => r._id === reportId);
+            if (!report) {
+                alert('Report not found');
+                return;
+            }
+
+            // In production, this would open a share modal
+            const shareMessage = `Share Report\n\nReport: ${report.title}\nCase: ${report.case?.caseNumber}\n\nShare options:\n- Email to team members\n- Generate secure link\n- Export to external systems`;
+            alert(shareMessage);
+        } catch (error) {
+            console.error('Error sharing report:', error);
+            alert('Failed to share report');
         }
     };
 
@@ -200,6 +218,7 @@ const ReportsPage = () => {
                                                 <span className="material-icons">download</span>
                                             </button>
                                             <button
+                                                onClick={() => handleShareReport(report._id)}
                                                 className="p-2 hover:bg-[#0891b2]/10 rounded-lg text-slate-400 transition-colors"
                                                 title="Share Report"
                                             >
