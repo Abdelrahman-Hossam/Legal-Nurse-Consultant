@@ -15,18 +15,18 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }) => {
   };
 
   const menuItems = [
-    { icon: "dashboard", label: "Dashboard", path: "/dashboard" },
-    { icon: "folder", label: "Cases", path: "/cases" },
-    { icon: "people", label: "Clients", path: "/clients" },
-    { icon: "business", label: "Law Firms", path: "/law-firms" },
-    { icon: "group", label: "Users", path: "/users" },
-    { icon: "description", label: "Medical Records", path: "/medical-records" },
-    { icon: "analytics", label: "Case Analysis", path: "/case-analysis" },
-    { icon: "attach_money", label: "Damages Tracking", path: "/damages" },
-    { icon: "assignment", label: "Task Manager", path: "/tasks" },
-    { icon: "notes", label: "Notes & Collaboration", path: "/notes" },
-    { icon: "payments", label: "Billing & Invoices", path: "/billing" },
-    { icon: "assessment", label: "Reporting", path: "/reports" },
+    { icon: "account_balance", label: "Dashboard", path: "/dashboard" , micolor: "text-gray-500"},
+    { icon: "folder", label: "Cases", path: "/cases" , micolor: "text-[#ffd679]"},
+    { icon: "people", label: "Clients", path: "/clients", micolor: "text-gray-800" },
+    { icon: "work", label: "Law Firms", path: "/law-firms" , micolor: "text-amber-900"},
+    { icon: "accessibility_new", label: "Users", path: "/users" , micolor: "text-[#1f3b61]"},
+    { icon: "description", label: "Medical Records", path: "/medical-records" , micolor: "text-[#ffffff]"},
+    { icon: "bar_chart", label: "Case Analysis", path: "/case-analysis" , micolor: "text-[#2b8a3e]"},
+    { icon: "personal_injury", label: "Damages Tracking", path: "/damages" , micolor: "text-[#c92a2a]"},
+    { icon: "checklist", label: "Task Manager", path: "/tasks" , micolor: "text-[text-gray-800]"},
+    { icon: "list_alt", label: "Notes & Collaboration", path: "/notes" , micolor: "text-[#757575]"},
+    { icon: "payments", label: "Billing & Invoices", path: "/billing" , micolor: "text-[#2b8a3e]"},
+    { icon: "assessment", label: "Reporting", path: "/reports" , micolor: "text-[#1f3b61]"},
   ];
 
   const toolItems = [
@@ -50,19 +50,22 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }) => {
           sidebarOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0"
         }`}
       >
+        <span className="text-[#9a8e7a] font-medium text-[10px] leading-none font-display tracking-[0.2em] h-2 pt-3 pl-16">
+                NAVIGATION
+          </span>
         <nav className="flex-1 py-6 px-4 space-y-1">
           {menuItems.map((item) => (
             <Link
               key={item.path}
               to={item.path}
               onClick={handleLinkClick}
-              className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors ${
+              className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors text-[13px] font-display ${
                 location.pathname === item.path
-                  ? "text-[#1f3b61] bg-[#1f3b61]/5 font-semibold"
-                  : "text-slate-500 hover:bg-slate-50 dark:hover:bg-slate-800"
+                  ? "text-[#f3efe5] bg-[#1a1409] font-semibold"
+                  : "text-[#1a1409] hover:bg-[#99907e]/20  dark:hover:bg-slate-800 "
               }`}
             >
-              <span className="material-icons">{item.icon}</span>
+              <span className={`material-icons ${item.micolor} text-[18px]`}>{item.icon}</span>
               <span>{item.label}</span>
             </Link>
           ))}

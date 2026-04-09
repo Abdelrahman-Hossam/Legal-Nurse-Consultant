@@ -240,7 +240,6 @@ const Dashboard = () => {
             Good morning, {userName}
           </h1>
           <p className="text-slate-500 mt-1">
-            Today is{" "}
             {new Date().toLocaleDateString("en-US", {
               weekday: "long",
               month: "long",
