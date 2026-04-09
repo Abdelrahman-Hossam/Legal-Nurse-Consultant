@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Link, useParams } from 'react-router-dom';
+import { Link, useLocation, useParams } from 'react-router-dom';
 import caseService from '../../../services/case.service';
 import caseAnalysisService from '../../../services/caseAnalysis.service';
 import medicalRecordService from '../../../services/medicalRecord.service';
@@ -11,6 +11,10 @@ import CreateTaskModal from '../../task-workflow/components/CreateTaskModal';
 
 const CaseDetail = () => {
     const { id } = useParams();
+    const { pathname } = useLocation();
+    const isStaff = pathname.startsWith('/staff');
+    const dashboardPath = isStaff ? '/staff-dashboard' : '/dashboard';
+    const casesListPath = isStaff ? '/staff/cases' : '/cases';
     const [activeTab, setActiveTab] = useState('overview');
     const [caseData, setCaseData] = useState(null);
     const [loading, setLoading] = useState(true);
@@ -678,9 +682,9 @@ const CaseDetail = () => {
         <div>
             <header className="bg-white dark:bg-slate-900 border-b border-[#1f3b61]/10 -mx-8 -mt-8 mb-8 px-8 py-4">
                 <nav className="flex text-xs text-[#1f3b61]/60 mb-2">
-                    <Link to="/dashboard">Dashboard</Link>
+                    <Link to={dashboardPath}>Dashboard</Link>
                     <span className="material-icons text-xs mx-1">chevron_right</span>
-                    <Link to="/cases">Cases</Link>
+                    <Link to={casesListPath}>Cases</Link>
                     <span className="material-icons text-xs mx-1">chevron_right</span>
                     <span className="font-medium text-[#1f3b61]">{id}</span>
                 </nav>

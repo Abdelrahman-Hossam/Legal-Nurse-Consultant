@@ -1,5 +1,6 @@
 const Case = require('../../../models/Case.model');
 const AppError = require('../../../shared/errors/AppError');
+const caseService = require('../services/case.service');
 
 // Get all cases
 exports.getAllCases = async (req, res, next) => {
@@ -66,24 +67,12 @@ exports.getCaseById = async (req, res, next) => {
 // Create new case
 exports.createCase = async (req, res, next) => {
     try {
-        const caseData = {
-            ...req.body,
-            createdBy: req.user._id
-        };
-
-        const newCase = await Case.create(caseData);
-
-        // Populate only if references exist
-        const populatedCase = await Case.findById(newCase._id)
-            .populate('client', 'fullName email')
-            .populate('lawFirm', 'firmName')
-            .populate('assignedConsultant', 'fullName email')
-            .populate('createdBy', 'fullName');
+        const populatedCase = await caseService.createCase(req.body, req.user._id);
 
         res.status(201).json({
             success: true,
             message: 'Case created successfully',
-            data: { case: populatedCase || newCase }
+            data: { case: populatedCase }
         });
     } catch (error) {
         console.error('Create case error:', error);
@@ -94,9 +83,10 @@ exports.createCase = async (req, res, next) => {
 // Update case
 exports.updateCase = async (req, res, next) => {
     try {
+        const updatePayload = caseService.sanitizeCaseUpdateBody(req.body);
         const caseData = await Case.findByIdAndUpdate(
             req.params.id,
-            req.body,
+            updatePayload,
             { new: true, runValidators: true }
         ).populate('client lawFirm assignedConsultant');
 

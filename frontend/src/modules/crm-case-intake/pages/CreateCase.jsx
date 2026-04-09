@@ -1,11 +1,13 @@
 import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import caseService from '../../../services/case.service';
 import clientService from '../../../services/client.service';
 import lawFirmService from '../../../services/lawFirm.service';
 
 const CreateCase = () => {
     const navigate = useNavigate();
+    const { pathname } = useLocation();
+    const casesListAfterCreate = pathname.startsWith('/staff') ? '/staff/cases' : '/cases';
     const [loading, setLoading] = useState(false);
     const [clients, setClients] = useState([]);
     const [lawFirms, setLawFirms] = useState([]);
@@ -46,9 +48,16 @@ const CreateCase = () => {
         e.preventDefault();
         try {
             setLoading(true);
-            await caseService.createCase(formData);
+            const payload = { ...formData };
+            if (!payload.lawFirm || String(payload.lawFirm).trim() === '') {
+                delete payload.lawFirm;
+            }
+            if (!payload.incidentDate || String(payload.incidentDate).trim() === '') {
+                delete payload.incidentDate;
+            }
+            await caseService.createCase(payload);
             alert('Case created successfully!');
-            navigate('/cases');
+            navigate(casesListAfterCreate);
         } catch (error) {
             alert('Failed to create case');
         } finally {

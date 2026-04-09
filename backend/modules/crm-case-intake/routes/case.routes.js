@@ -10,8 +10,8 @@ const caseValidation = [
     body('caseName').trim().notEmpty().withMessage('Case name is required'),
     body('caseType').isIn(['medical-malpractice', 'personal-injury', 'workers-compensation', 'product-liability', 'other'])
         .withMessage('Valid case type is required'),
-    body('client').notEmpty().withMessage('Client is required'),
-    body('lawFirm').optional()
+    body('client').isMongoId().withMessage('Valid client id is required'),
+    body('lawFirm').optional({ checkFalsy: true }).isMongoId().withMessage('Invalid law firm id')
 ];
 
 // Get all cases (requires authentication)

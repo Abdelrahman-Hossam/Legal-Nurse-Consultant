@@ -1,8 +1,11 @@
 import { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import caseService from '../../../services/case.service';
 
 const CasesList = () => {
+    const { pathname } = useLocation();
+    const isStaff = pathname.startsWith('/staff');
+    const casesBase = isStaff ? '/staff/cases' : '/cases';
     const [searchTerm, setSearchTerm] = useState('');
     const [statusFilter, setStatusFilter] = useState('all');
     const [cases, setCases] = useState([]);
@@ -49,7 +52,7 @@ const CasesList = () => {
                             Active Cases
                         </h1>
                     </div>
-                    <Link to="/cases/new" className="bg-[#1f3b61] hover:bg-[#1f3b61]/90 text-white px-4 py-2 rounded-lg font-medium flex items-center gap-2">
+                    <Link to={`${casesBase}/new`} className="bg-[#1f3b61] hover:bg-[#1f3b61]/90 text-white px-4 py-2 rounded-lg font-medium flex items-center gap-2">
                         <span className="material-icons text-sm">add</span>
                         New Case
                     </Link>
@@ -110,7 +113,7 @@ const CasesList = () => {
                             cases.map((caseItem) => (
                                 <tr key={caseItem._id} className="hover:bg-[#1f3b61]/5 transition-colors">
                                     <td className="px-6 py-4">
-                                        <Link to={`/cases/${caseItem._id}`} className="font-mono font-medium text-[#1f3b61] hover:underline">
+                                        <Link to={`${casesBase}/${caseItem._id}`} className="font-mono font-medium text-[#1f3b61] hover:underline">
                                             {caseItem.caseNumber}
                                         </Link>
                                         <div className="text-[10px] text-slate-400 mt-0.5">
@@ -144,14 +147,14 @@ const CasesList = () => {
                                                     />
                                                     <div className="absolute right-0 mt-2 w-48 bg-white dark:bg-slate-800 rounded-lg shadow-lg border border-slate-200 dark:border-slate-700 py-1 z-20">
                                                         <Link
-                                                            to={`/cases/${caseItem._id}`}
+                                                            to={`${casesBase}/${caseItem._id}`}
                                                             className="flex items-center gap-2 px-4 py-2 text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700"
                                                         >
                                                             <span className="material-icons text-sm">visibility</span>
                                                             View Details
                                                         </Link>
                                                         <Link
-                                                            to={`/cases/${caseItem._id}/edit`}
+                                                            to={`${casesBase}/${caseItem._id}/edit`}
                                                             className="flex items-center gap-2 px-4 py-2 text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700"
                                                         >
                                                             <span className="material-icons text-sm">edit</span>
