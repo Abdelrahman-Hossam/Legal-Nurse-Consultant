@@ -29,6 +29,7 @@ import Register from './pages/Register';
 import Settings from './pages/Settings';
 import StaffDashboard from './pages/StaffDashboard';
 import UsersManagement from './pages/UsersManagement';
+import NotificationsPage from './pages/NotificationsPage';
 
 // Layouts
 import AdminLayout from './layouts/AdminLayout';
@@ -64,6 +65,7 @@ function App() {
                 <Route path="/tasks" element={<AdminLayout><TasksPage /></AdminLayout>} />
                 <Route path="/settings" element={<AdminLayout><PortalSettings /></AdminLayout>} />
                 <Route path="/medline" element={<AdminLayout><MedlineAccess /></AdminLayout>} />
+                <Route path="/notifications" element={<AdminLayout><NotificationsPage /></AdminLayout>} />
                 {/* Staff Routes */}
                 <Route path="/staff-dashboard" element={<StaffLayout><StaffDashboard /></StaffLayout>} />
                 <Route path="/staff/cases" element={<StaffLayout><CasesList /></StaffLayout>} />
@@ -78,6 +80,7 @@ function App() {
                 <Route path="/staff/settings" element={<StaffLayout><Settings /></StaffLayout>} />
                 <Route path="/staff/timeline/:caseId" element={<StaffLayout><TimelineBuilder /></StaffLayout>} />
                 <Route path="/timeline-work" element={<StaffLayout><TimelineWork /></StaffLayout>} />
+                <Route path="/staff/notifications" element={<StaffLayout><NotificationsPage /></StaffLayout>} />
 
                 {/* Client Portal Routes */}
                 <Route path="/client/dashboard" element={<ClientLayout><ClientDashboard /></ClientLayout>} />

@@ -1,10 +1,14 @@
 import { useEffect, useRef, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import authService from "../../services/auth.service";
 import notificationService from "../../services/notification.service";
 
 const Navbar = ({ sidebarOpen, setSidebarOpen }) => {
   const navigate = useNavigate();
+  const location = useLocation();
+  const notificationsListPath = location.pathname.startsWith("/staff")
+    ? "/staff/notifications"
+    : "/notifications";
   const [user, setUser] = useState(null);
   const [notificationCount, setNotificationCount] = useState(0);
   const [notifications, setNotifications] = useState([]);
@@ -157,7 +161,7 @@ const Navbar = ({ sidebarOpen, setSidebarOpen }) => {
           onClick={() => setSidebarOpen(!sidebarOpen)}
           className="md:hidden p-2 hover:bg-white/10 rounded-lg transition-colors"
         >
-          <span className="material-icons">menu</span>
+          <span className="material-icons text-[#99907e]">menu</span>
         </button>
 
         <div
@@ -167,7 +171,7 @@ const Navbar = ({ sidebarOpen, setSidebarOpen }) => {
           {/* <span className="material-icons text-[#0891b2]">gavel</span> */}
           <span className="text-lg md:text-xl">
             <div className="flex flex-col">
-              <span className="hidden sm:inline font-black text-[#1a1409] text-2xl font-playfair">
+              <span className="font-black text-[#1a1409] text-2xl font-playfair">
                 Caduceus<span className="text-[#7a1f2e]">LNC</span>
               </span>
               <span className="text-[#9a8e7a] font-medium text-[9px] leading-none font-display tracking-[0.2em]">
@@ -176,28 +180,29 @@ const Navbar = ({ sidebarOpen, setSidebarOpen }) => {
             </div>
           </span>
         </div>
+        <div className="hidden sm:flex items-center gap-1.5 bg-green-500/20 px-2 md:px-3 py-0.5 rounded-full border border-green-500/30">
+          <span className="material-icons text-green-400 text-xs">shield</span>
+          <span className="text-[9px] font-semibold uppercase tracking-wider text-green-400">
+            <span className="hidden md:inline">Secured Session</span>
+            <span className="md:hidden">Secure</span>
+          </span>
+        </div>
+      </div>
+
+      <div className="flex items-center gap-3 md:gap-6">
         <form
           onSubmit={handleSearch}
           className="ml-4 md:ml-8 hidden lg:flex items-center bg-[#ffffff] rounded px-3 py-0.5 w-60 xl:w-80 border border-[#f3efe5] focus-within:border-[#1a1409]"
         >
           <span className="material-icons text-[#99907e] text-sm">search</span>
           <input
-            className="rounded  focus:ring-0 text-sm w-full placeholder text-[#1a1409] outline-none border-none bg-transparent ml-2"
+            className="rounded focus:ring-0 text-sm w-full placeholder text-[#1a1409] outline-none border-none bg-transparent ml-2 h-7"
             placeholder="Search cases, medical records..."
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
           />
         </form>
-      </div>
-      <div className="flex items-center gap-3 md:gap-6">
-        <div className="hidden sm:flex items-center gap-1.5 bg-green-500/20 px-2 md:px-3 py-1 rounded-full border border-green-500/30">
-          <span className="material-icons text-green-400 text-xs">shield</span>
-          <span className="text-[10px] font-semibold uppercase tracking-wider text-green-400">
-            <span className="hidden md:inline">Secured Session</span>
-            <span className="md:hidden">Secure</span>
-          </span>
-        </div>
 
         {/* Notifications Dropdown */}
         <div className="relative" ref={notificationRef}>
@@ -205,7 +210,10 @@ const Navbar = ({ sidebarOpen, setSidebarOpen }) => {
             className="relative cursor-pointer"
             onClick={() => setShowNotifications(!showNotifications)}
           >
-            <span className="material-icons text-[#ffc83d] border hover:border-[#99907e]">
+            <span
+              className="material-icons text-[#ffc83d]  
+            border  hover:border-[#99907e] pt-1.5 pb-1.5 pr-3.5 pl-3.5"
+            >
               notifications
             </span>
             {notificationCount > 0 && (
@@ -259,7 +267,7 @@ const Navbar = ({ sidebarOpen, setSidebarOpen }) => {
                 <button
                   onClick={() => {
                     setShowNotifications(false);
-                    navigate("/notifications");
+                    navigate(notificationsListPath);
                   }}
                   className="text-xs text-[#0891b2] hover:underline w-full text-center"
                 >
@@ -276,8 +284,10 @@ const Navbar = ({ sidebarOpen, setSidebarOpen }) => {
           ref={profileRef}
         >
           <div className="text-right hidden sm:block">
-            <p className="text-xs font-medium">{getUserDisplayName()}</p>
-            <p className="text-[10px] text-white/60">{getUserRole()}</p>
+            <p className="text-xs font-medium text-[#1a1409]">
+              {getUserDisplayName()}
+            </p>
+            <p className="text-[10px] text-[#1a1409]">{getUserRole()}</p>
           </div>
           <img
             alt="Profile"
