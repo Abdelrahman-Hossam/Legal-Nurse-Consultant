@@ -30,8 +30,8 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }) => {
   ];
 
   const toolItems = [
-    { icon: "medical_services", label: "Medline Access", path: "/medline" },
-    { icon: "settings", label: "Portal Settings", path: "/settings" },
+    { icon: "medical_services", label: "Medline Access", path: "/medline", micolor: "text-[#c92a2a]" },
+    { icon: "settings", label: "Portal Settings", path: "/settings" , micolor: "text-gray-500"},
   ];
 
   return (
@@ -71,17 +71,20 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }) => {
           ))}
 
           <div className="pt-6 mt-6 border-t border-slate-100 dark:border-slate-800">
-            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest px-3 mb-2">
-              Internal Tools
-            </p>
+          <span className="text-[#9a8e7a] font-medium text-[10px] leading-none font-display tracking-[0.2em] h-2 pt-3 pl-8">
+                INTERNAL TOOLS
+          </span>
             {toolItems.map((item) => (
               <Link
                 key={item.path}
                 to={item.path}
                 onClick={handleLinkClick}
-                className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-500 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"
-              >
-                <span className="material-icons">{item.icon}</span>
+                className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors text-[13px] font-display ${
+                  location.pathname === item.path
+                    ? "text-[#f3efe5] bg-[#1a1409] font-semibold"
+                    : "text-[#1a1409] hover:bg-[#99907e]/20  dark:hover:bg-slate-800 "
+                }`}>
+                <span className={`material-icons ${item.micolor} text-[18px]`}>{item.icon}</span>
                 <span>{item.label}</span>
               </Link>
             ))}
@@ -93,10 +96,10 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }) => {
                 handleLogout();
                 handleLinkClick();
               }}
-              className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors w-full"
+              className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-red-600  hover:bg-[#99907e]/20 dark:hover:bg-red-900/20 transition-colors w-full"
             >
-              <span className="material-icons">logout</span>
-              <span className="font-medium">Logout</span>
+              <span className="material-icons ">logout</span>
+              <span className="font-medium ">Logout</span>
             </button>
           </div>
         </nav>

@@ -5,7 +5,7 @@ import NotesPage from './modules/collaboration/pages/NotesPage';
 import CaseDetail from './modules/crm-case-intake/pages/CaseDetail';
 import CasesList from './modules/crm-case-intake/pages/CasesList';
 import ClientsList from './modules/crm-case-intake/pages/ClientsList';
-import CreateCase from './modules/crm-case-intake/pages/CreateCase';
+import CaseForm from './modules/crm-case-intake/components/CaseForm';
 import LawFirmsList from './modules/crm-case-intake/pages/LawFirmsList';
 import DamagesTracking from './modules/damages-tracking/pages/DamagesTracking';
 import ClientBilling from './modules/file-sharing-portal/pages/ClientBilling';
@@ -50,7 +50,7 @@ function App() {
                 <Route path="/" element={<Navigate to="/login" replace />} />
                 <Route path="/dashboard" element={<AdminLayout><Dashboard /></AdminLayout>} />
                 <Route path="/cases" element={<AdminLayout><CasesList /></AdminLayout>} />
-                <Route path="/cases/new" element={<AdminLayout><CreateCase /></AdminLayout>} />
+                <Route path="/cases/new" element={<AdminLayout><CaseForm /></AdminLayout>} />
                 <Route path="/cases/:id" element={<AdminLayout><CaseDetail /></AdminLayout>} />
                 <Route path="/clients" element={<AdminLayout><ClientsList /></AdminLayout>} />
                 <Route path="/users" element={<AdminLayout><UsersManagement /></AdminLayout>} />
@@ -70,7 +70,7 @@ function App() {
                 {/* Staff Routes */}
                 <Route path="/staff-dashboard" element={<StaffLayout><StaffDashboard /></StaffLayout>} />
                 <Route path="/staff/cases" element={<StaffLayout><CasesList /></StaffLayout>} />
-                <Route path="/staff/cases/new" element={<StaffLayout><CreateCase /></StaffLayout>} />
+                <Route path="/staff/cases/new" element={<StaffLayout><CaseForm /></StaffLayout>} />
                 <Route path="/staff/cases/:id" element={<StaffLayout><CaseDetail /></StaffLayout>} />
                 <Route path="/staff/tasks" element={<StaffLayout><TasksPage /></StaffLayout>} />
                 <Route path="/staff/medical-records" element={<StaffLayout><MedicalRecordsList /></StaffLayout>} />
