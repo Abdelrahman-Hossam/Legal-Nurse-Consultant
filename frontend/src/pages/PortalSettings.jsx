@@ -1,4 +1,6 @@
 import { useState } from 'react';
+import { Button } from '../shared/components/Button';
+import PagesTopBar from '../shared/components/PagesTopBar';
 
 const PortalSettings = () => {
     const [activeTab, setActiveTab] = useState('general');
@@ -35,23 +37,24 @@ const PortalSettings = () => {
 
     return (
         <div className="max-w-7xl mx-auto">
-            <div className="mb-8">
-                <h1 className="text-2xl font-bold text-slate-900 dark:text-white mb-2">Portal Settings</h1>
-                <p className="text-slate-500">Configure system-wide settings and preferences</p>
-            </div>
+            <PagesTopBar
+                title="Portal Settings"
+                subtitle="Configure system-wide settings and preferences"
+            />
 
             <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
                 {/* Sidebar Tabs */}
                 <div className="lg:col-span-1">
-                    <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm p-4">
+                    <div className="bg-white dark:bg-slate-900 rounded-xl border border-[#d9d4cb] dark:border-slate-800 shadow-sm p-4">
                         <nav className="space-y-1">
                             {tabs.map((tab) => (
                                 <button
                                     key={tab.id}
+                                    type="button"
                                     onClick={() => setActiveTab(tab.id)}
                                     className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${activeTab === tab.id
-                                            ? 'bg-[#0891b2] text-white'
-                                            : 'text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800'
+                                            ? 'bg-[#7a1f2e] text-white'
+                                            : 'text-slate-600 dark:text-slate-400 hover:bg-[#f3efe5] dark:hover:bg-slate-800'
                                         }`}
                                 >
                                     <span className="material-icons text-xl">{tab.icon}</span>
@@ -64,11 +67,11 @@ const PortalSettings = () => {
 
                 {/* Content Area */}
                 <div className="lg:col-span-3">
-                    <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm">
+                    <div className="bg-white dark:bg-slate-900 rounded-xl border border-[#d9d4cb] dark:border-slate-800 shadow-sm">
                         {/* General Settings */}
                         {activeTab === 'general' && (
                             <div className="p-6">
-                                <h2 className="text-xl font-bold mb-6">General Settings</h2>
+                                <h2 className="text-xl font-bold text-[#1f3b61] dark:text-white mb-6">General Settings</h2>
                                 <div className="space-y-6">
                                     <div>
                                         <label className="block text-sm font-medium mb-2">Portal Name</label>
@@ -76,7 +79,7 @@ const PortalSettings = () => {
                                             type="text"
                                             value={settings.portalName}
                                             onChange={(e) => setSettings({ ...settings, portalName: e.target.value })}
-                                            className="w-full px-4 py-2.5 border border-slate-200 dark:border-slate-700 rounded-lg bg-slate-50 dark:bg-slate-800 focus:ring-2 focus:ring-[#0891b2] outline-none"
+                                            className="w-full px-4 py-2.5 border border-slate-200 dark:border-slate-700 rounded-lg bg-slate-50 dark:bg-slate-800 focus:ring-2 focus:ring-[#7a1f2e]/35 outline-none"
                                         />
                                     </div>
                                     <div>
@@ -85,7 +88,7 @@ const PortalSettings = () => {
                                             type="text"
                                             value={settings.companyName}
                                             onChange={(e) => setSettings({ ...settings, companyName: e.target.value })}
-                                            className="w-full px-4 py-2.5 border border-slate-200 dark:border-slate-700 rounded-lg bg-slate-50 dark:bg-slate-800 focus:ring-2 focus:ring-[#0891b2] outline-none"
+                                            className="w-full px-4 py-2.5 border border-slate-200 dark:border-slate-700 rounded-lg bg-slate-50 dark:bg-slate-800 focus:ring-2 focus:ring-[#7a1f2e]/35 outline-none"
                                         />
                                     </div>
                                     <div>
@@ -94,7 +97,7 @@ const PortalSettings = () => {
                                             type="email"
                                             value={settings.supportEmail}
                                             onChange={(e) => setSettings({ ...settings, supportEmail: e.target.value })}
-                                            className="w-full px-4 py-2.5 border border-slate-200 dark:border-slate-700 rounded-lg bg-slate-50 dark:bg-slate-800 focus:ring-2 focus:ring-[#0891b2] outline-none"
+                                            className="w-full px-4 py-2.5 border border-slate-200 dark:border-slate-700 rounded-lg bg-slate-50 dark:bg-slate-800 focus:ring-2 focus:ring-[#7a1f2e]/35 outline-none"
                                         />
                                     </div>
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -103,7 +106,7 @@ const PortalSettings = () => {
                                             <select
                                                 value={settings.timezone}
                                                 onChange={(e) => setSettings({ ...settings, timezone: e.target.value })}
-                                                className="w-full px-4 py-2.5 border border-slate-200 dark:border-slate-700 rounded-lg bg-slate-50 dark:bg-slate-800 focus:ring-2 focus:ring-[#0891b2] outline-none"
+                                                className="w-full px-4 py-2.5 border border-slate-200 dark:border-slate-700 rounded-lg bg-slate-50 dark:bg-slate-800 focus:ring-2 focus:ring-[#7a1f2e]/35 outline-none"
                                             >
                                                 <option value="America/New_York">Eastern Time</option>
                                                 <option value="America/Chicago">Central Time</option>
@@ -116,7 +119,7 @@ const PortalSettings = () => {
                                             <select
                                                 value={settings.dateFormat}
                                                 onChange={(e) => setSettings({ ...settings, dateFormat: e.target.value })}
-                                                className="w-full px-4 py-2.5 border border-slate-200 dark:border-slate-700 rounded-lg bg-slate-50 dark:bg-slate-800 focus:ring-2 focus:ring-[#0891b2] outline-none"
+                                                className="w-full px-4 py-2.5 border border-slate-200 dark:border-slate-700 rounded-lg bg-slate-50 dark:bg-slate-800 focus:ring-2 focus:ring-[#7a1f2e]/35 outline-none"
                                             >
                                                 <option value="MM/DD/YYYY">MM/DD/YYYY</option>
                                                 <option value="DD/MM/YYYY">DD/MM/YYYY</option>
@@ -131,11 +134,11 @@ const PortalSettings = () => {
                         {/* Security Settings */}
                         {activeTab === 'security' && (
                             <div className="p-6">
-                                <h2 className="text-xl font-bold mb-6">Security Settings</h2>
+                                <h2 className="text-xl font-bold text-[#1f3b61] dark:text-white mb-6">Security Settings</h2>
                                 <div className="space-y-6">
-                                    <div className="flex items-center justify-between p-4 bg-slate-50 dark:bg-slate-800 rounded-lg">
+                                    <div className="flex items-center justify-between p-4 bg-[#f3efe5]/60 dark:bg-slate-800 rounded-lg border border-[#d9d4cb]/60 dark:border-slate-700">
                                         <div>
-                                            <p className="font-medium">Two-Factor Authentication</p>
+                                            <p className="font-medium text-[#1a1409] dark:text-slate-200">Two-Factor Authentication</p>
                                             <p className="text-sm text-slate-500">Require 2FA for all users</p>
                                         </div>
                                         <label className="relative inline-flex items-center cursor-pointer">
@@ -145,7 +148,7 @@ const PortalSettings = () => {
                                                 onChange={(e) => setSettings({ ...settings, twoFactorAuth: e.target.checked })}
                                                 className="sr-only peer"
                                             />
-                                            <div className="w-11 h-6 bg-slate-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-[#0891b2]/20 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#0891b2]"></div>
+                                            <div className="w-11 h-6 bg-slate-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-[#7a1f2e]/25 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#7a1f2e]"></div>
                                         </label>
                                     </div>
                                     <div>
@@ -154,7 +157,7 @@ const PortalSettings = () => {
                                             type="number"
                                             value={settings.sessionTimeout}
                                             onChange={(e) => setSettings({ ...settings, sessionTimeout: e.target.value })}
-                                            className="w-full px-4 py-2.5 border border-slate-200 dark:border-slate-700 rounded-lg bg-slate-50 dark:bg-slate-800 focus:ring-2 focus:ring-[#0891b2] outline-none"
+                                            className="w-full px-4 py-2.5 border border-slate-200 dark:border-slate-700 rounded-lg bg-slate-50 dark:bg-slate-800 focus:ring-2 focus:ring-[#7a1f2e]/35 outline-none"
                                         />
                                     </div>
                                     <div>
@@ -163,7 +166,7 @@ const PortalSettings = () => {
                                             type="number"
                                             value={settings.passwordExpiry}
                                             onChange={(e) => setSettings({ ...settings, passwordExpiry: e.target.value })}
-                                            className="w-full px-4 py-2.5 border border-slate-200 dark:border-slate-700 rounded-lg bg-slate-50 dark:bg-slate-800 focus:ring-2 focus:ring-[#0891b2] outline-none"
+                                            className="w-full px-4 py-2.5 border border-slate-200 dark:border-slate-700 rounded-lg bg-slate-50 dark:bg-slate-800 focus:ring-2 focus:ring-[#7a1f2e]/35 outline-none"
                                         />
                                     </div>
                                     <div>
@@ -173,7 +176,7 @@ const PortalSettings = () => {
                                             onChange={(e) => setSettings({ ...settings, ipWhitelist: e.target.value })}
                                             rows="3"
                                             placeholder="192.168.1.1, 10.0.0.1"
-                                            className="w-full px-4 py-2.5 border border-slate-200 dark:border-slate-700 rounded-lg bg-slate-50 dark:bg-slate-800 focus:ring-2 focus:ring-[#0891b2] outline-none"
+                                            className="w-full px-4 py-2.5 border border-slate-200 dark:border-slate-700 rounded-lg bg-slate-50 dark:bg-slate-800 focus:ring-2 focus:ring-[#7a1f2e]/35 outline-none"
                                         />
                                     </div>
                                 </div>
@@ -183,7 +186,7 @@ const PortalSettings = () => {
                         {/* Notifications Settings */}
                         {activeTab === 'notifications' && (
                             <div className="p-6">
-                                <h2 className="text-xl font-bold mb-6">Notification Settings</h2>
+                                <h2 className="text-xl font-bold text-[#1f3b61] dark:text-white mb-6">Notification Settings</h2>
                                 <div className="space-y-4">
                                     <div className="flex items-center justify-between p-4 bg-slate-50 dark:bg-slate-800 rounded-lg">
                                         <div>
@@ -197,12 +200,12 @@ const PortalSettings = () => {
                                                 onChange={(e) => setSettings({ ...settings, enableNotifications: e.target.checked })}
                                                 className="sr-only peer"
                                             />
-                                            <div className="w-11 h-6 bg-slate-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-[#0891b2]/20 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#0891b2]"></div>
+                                            <div className="w-11 h-6 bg-slate-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-[#7a1f2e]/25 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#7a1f2e]"></div>
                                         </label>
                                     </div>
-                                    <div className="flex items-center justify-between p-4 bg-slate-50 dark:bg-slate-800 rounded-lg">
+                                    <div className="flex items-center justify-between p-4 bg-[#f3efe5]/60 dark:bg-slate-800 rounded-lg border border-[#d9d4cb]/60 dark:border-slate-700">
                                         <div>
-                                            <p className="font-medium">Email Alerts</p>
+                                            <p className="font-medium text-[#1a1409] dark:text-slate-200">Email Alerts</p>
                                             <p className="text-sm text-slate-500">Send email notifications</p>
                                         </div>
                                         <label className="relative inline-flex items-center cursor-pointer">
@@ -212,12 +215,12 @@ const PortalSettings = () => {
                                                 onChange={(e) => setSettings({ ...settings, enableEmailAlerts: e.target.checked })}
                                                 className="sr-only peer"
                                             />
-                                            <div className="w-11 h-6 bg-slate-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-[#0891b2]/20 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#0891b2]"></div>
+                                            <div className="w-11 h-6 bg-slate-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-[#7a1f2e]/25 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#7a1f2e]"></div>
                                         </label>
                                     </div>
-                                    <div className="flex items-center justify-between p-4 bg-slate-50 dark:bg-slate-800 rounded-lg">
+                                    <div className="flex items-center justify-between p-4 bg-[#f3efe5]/60 dark:bg-slate-800 rounded-lg border border-[#d9d4cb]/60 dark:border-slate-700">
                                         <div>
-                                            <p className="font-medium">SMS Alerts</p>
+                                            <p className="font-medium text-[#1a1409] dark:text-slate-200">SMS Alerts</p>
                                             <p className="text-sm text-slate-500">Send SMS notifications</p>
                                         </div>
                                         <label className="relative inline-flex items-center cursor-pointer">
@@ -227,7 +230,7 @@ const PortalSettings = () => {
                                                 onChange={(e) => setSettings({ ...settings, enableSMSAlerts: e.target.checked })}
                                                 className="sr-only peer"
                                             />
-                                            <div className="w-11 h-6 bg-slate-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-[#0891b2]/20 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#0891b2]"></div>
+                                            <div className="w-11 h-6 bg-slate-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-[#7a1f2e]/25 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#7a1f2e]"></div>
                                         </label>
                                     </div>
                                 </div>
@@ -237,7 +240,7 @@ const PortalSettings = () => {
                         {/* HIPAA Compliance */}
                         {activeTab === 'compliance' && (
                             <div className="p-6">
-                                <h2 className="text-xl font-bold mb-6">HIPAA Compliance Settings</h2>
+                                <h2 className="text-xl font-bold text-[#1f3b61] dark:text-white mb-6">HIPAA Compliance Settings</h2>
                                 <div className="space-y-6">
                                     <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg p-4">
                                         <div className="flex items-center gap-2 mb-2">
@@ -254,7 +257,7 @@ const PortalSettings = () => {
                                             type="number"
                                             value={settings.auditLogRetention}
                                             onChange={(e) => setSettings({ ...settings, auditLogRetention: e.target.value })}
-                                            className="w-full px-4 py-2.5 border border-slate-200 dark:border-slate-700 rounded-lg bg-slate-50 dark:bg-slate-800 focus:ring-2 focus:ring-[#0891b2] outline-none"
+                                            className="w-full px-4 py-2.5 border border-slate-200 dark:border-slate-700 rounded-lg bg-slate-50 dark:bg-slate-800 focus:ring-2 focus:ring-[#7a1f2e]/35 outline-none"
                                         />
                                         <p className="text-xs text-slate-500 mt-1">HIPAA requires minimum 7 years (2555 days)</p>
                                     </div>
@@ -282,23 +285,23 @@ const PortalSettings = () => {
                         {/* Backup & Recovery */}
                         {activeTab === 'backup' && (
                             <div className="p-6">
-                                <h2 className="text-xl font-bold mb-6">Backup & Recovery Settings</h2>
+                                <h2 className="text-xl font-bold text-[#1f3b61] dark:text-white mb-6">Backup & Recovery Settings</h2>
                                 <div className="space-y-6">
                                     <div>
                                         <label className="block text-sm font-medium mb-2">Backup Frequency</label>
                                         <select
                                             value={settings.dataBackupFrequency}
                                             onChange={(e) => setSettings({ ...settings, dataBackupFrequency: e.target.value })}
-                                            className="w-full px-4 py-2.5 border border-slate-200 dark:border-slate-700 rounded-lg bg-slate-50 dark:bg-slate-800 focus:ring-2 focus:ring-[#0891b2] outline-none"
+                                            className="w-full px-4 py-2.5 border border-slate-200 dark:border-slate-700 rounded-lg bg-slate-50 dark:bg-slate-800 focus:ring-2 focus:ring-[#7a1f2e]/35 outline-none"
                                         >
                                             <option value="hourly">Hourly</option>
                                             <option value="daily">Daily</option>
                                             <option value="weekly">Weekly</option>
                                         </select>
                                     </div>
-                                    <div className="flex items-center justify-between p-4 bg-slate-50 dark:bg-slate-800 rounded-lg">
+                                    <div className="flex items-center justify-between p-4 bg-[#f3efe5]/60 dark:bg-slate-800 rounded-lg border border-[#d9d4cb]/60 dark:border-slate-700">
                                         <div>
-                                            <p className="font-medium">Maintenance Mode</p>
+                                            <p className="font-medium text-[#1a1409] dark:text-slate-200">Maintenance Mode</p>
                                             <p className="text-sm text-slate-500">Temporarily disable portal access</p>
                                         </div>
                                         <label className="relative inline-flex items-center cursor-pointer">
@@ -308,12 +311,12 @@ const PortalSettings = () => {
                                                 onChange={(e) => setSettings({ ...settings, maintenanceMode: e.target.checked })}
                                                 className="sr-only peer"
                                             />
-                                            <div className="w-11 h-6 bg-slate-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-[#0891b2]/20 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#0891b2]"></div>
+                                            <div className="w-11 h-6 bg-slate-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-[#7a1f2e]/25 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#7a1f2e]"></div>
                                         </label>
                                     </div>
-                                    <div className="p-4 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg">
-                                        <h3 className="font-medium mb-2 text-blue-900 dark:text-blue-400">Last Backup</h3>
-                                        <p className="text-sm text-blue-700 dark:text-blue-400">
+                                    <div className="p-4 bg-[#f3efe5] dark:bg-slate-800/80 border border-[#d9d4cb] dark:border-slate-700 rounded-lg">
+                                        <h3 className="font-medium mb-2 text-[#1f3b61] dark:text-slate-200">Last Backup</h3>
+                                        <p className="text-sm text-slate-700 dark:text-slate-300">
                                             {new Date().toLocaleString()} - All data backed up successfully
                                         </p>
                                     </div>
@@ -322,17 +325,14 @@ const PortalSettings = () => {
                         )}
 
                         {/* Save Button */}
-                        <div className="px-6 py-4 border-t border-slate-200 dark:border-slate-800 flex justify-end gap-3">
-                            <button className="px-6 py-2.5 border border-slate-200 dark:border-slate-700 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">
+                        <div className="px-6 py-4 border-t border-[#d9d4cb] dark:border-slate-800 flex justify-end gap-3">
+                            <Button type="button" variant="outline">
                                 Cancel
-                            </button>
-                            <button
-                                onClick={handleSave}
-                                className="bg-[#0891b2] hover:bg-teal-700 text-white px-6 py-2.5 rounded-lg font-semibold flex items-center gap-2"
-                            >
+                            </Button>
+                            <Button type="button" variant="primary" onClick={handleSave} className="inline-flex items-center gap-2">
                                 <span className="material-icons text-sm">save</span>
                                 Save Changes
-                            </button>
+                            </Button>
                         </div>
                     </div>
                 </div>

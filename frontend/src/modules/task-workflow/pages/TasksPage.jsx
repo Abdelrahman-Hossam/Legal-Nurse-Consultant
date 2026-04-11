@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useLocation } from 'react-router-dom';
 import taskService from '../../../services/task.service';
+import PagesTopBar, { pagesTopBarPrimaryClass } from '../../../shared/components/PagesTopBar';
 import CreateTaskModal from '../components/CreateTaskModal';
 
 const TasksPage = () => {
@@ -142,6 +143,11 @@ const TasksPage = () => {
 
     return (
         <div className="max-w-[1600px] mx-auto">
+            <PagesTopBar
+                title="Task Manager"
+                subtitle="Track deadlines, priorities, and work across cases."
+            />
+
             {/* Dashboard Summary */}
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
                 <div className="bg-white dark:bg-slate-900/40 border border-slate-200 dark:border-slate-800 p-4 rounded-xl">
@@ -166,10 +172,12 @@ const TasksPage = () => {
             <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 mb-6">
                 <div className="flex flex-wrap items-center gap-2">
                     <button
+                        type="button"
                         onClick={() => setIsCreateModalOpen(true)}
-                        className="bg-[#0891b2] hover:bg-teal-700 text-white px-4 py-2 rounded-lg font-medium flex items-center gap-2 transition-all"
+                        className={pagesTopBarPrimaryClass}
                     >
-                        <span className="material-icons text-sm">add</span> New Task
+                        <span className="material-icons text-sm">add</span>
+                        New Task
                     </button>
                     <div className="flex items-center bg-slate-100 dark:bg-slate-800/50 p-1 rounded-lg">
                         <button

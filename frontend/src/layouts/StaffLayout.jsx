@@ -7,7 +7,7 @@ const StaffLayout = ({ children }) => {
     const [sidebarOpen, setSidebarOpen] = useState(false);
 
     return (
-        <div className="bg-[#f6f7f8] dark:bg-[#14181e] min-h-screen">
+        <div className="bg-[#f3efe5] dark:bg-[#14181e] min-h-screen">
             <Navbar sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen} />
             <div className="flex pt-16">
                 <StaffSidebar sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen} />

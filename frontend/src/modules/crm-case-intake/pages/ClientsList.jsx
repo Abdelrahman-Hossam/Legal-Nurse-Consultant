@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import clientService from '../../../services/client.service';
+import PagesTopBar, { pagesTopBarPrimaryClass, pagesTopBarSecondaryClass } from '../../../shared/components/PagesTopBar';
 
 const ClientsList = () => {
     const navigate = useNavigate();
@@ -145,43 +146,33 @@ const ClientsList = () => {
 
     return (
         <div className="max-w-7xl mx-auto">
-            {/* Header */}
-            <header className="mb-8">
-                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                    <div>
-                        <h1 className="text-2xl font-bold text-slate-900 dark:text-white">Client Directory</h1>
-                        <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
-                            Manage HIPAA-compliant attorney relationships and firm records.
-                        </p>
-                    </div>
-                    <div className="flex items-center gap-3">
-                        <button
-                            onClick={handleExportCSV}
-                            className="flex items-center px-4 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700 transition-all text-sm font-medium"
-                        >
-                            <span className="material-icons text-sm mr-2">file_download</span>
-                            Export CSV
-                        </button>
-                        <button
-                            onClick={() => {
-                                setEditingClient(null);
-                                setFormData({
-                                    fullName: '',
-                                    email: '',
-                                    phone: '',
-                                    address: '',
-                                    status: 'active'
-                                });
-                                setShowCreateModal(true);
-                            }}
-                            className="flex items-center px-5 py-2.5 bg-[#0891b2] hover:bg-teal-700 text-white rounded-lg shadow-lg shadow-[#0891b2]/20 transition-all text-sm font-semibold"
-                        >
-                            <span className="material-icons text-sm mr-2">person_add</span>
-                            New Client
-                        </button>
-                    </div>
-                </div>
-            </header>
+            <PagesTopBar
+                title="Client Directory"
+                subtitle="Manage HIPAA-compliant attorney relationships and firm records."
+            >
+                <button type="button" onClick={handleExportCSV} className={pagesTopBarSecondaryClass}>
+                    <span className="material-icons text-sm">file_download</span>
+                    Export CSV
+                </button>
+                <button
+                    type="button"
+                    onClick={() => {
+                        setEditingClient(null);
+                        setFormData({
+                            fullName: '',
+                            email: '',
+                            phone: '',
+                            address: '',
+                            status: 'active'
+                        });
+                        setShowCreateModal(true);
+                    }}
+                    className={pagesTopBarPrimaryClass}
+                >
+                    <span className="material-icons text-sm">person_add</span>
+                    New Client
+                </button>
+            </PagesTopBar>
 
             {/* Search & Filter Bar */}
             <div className="bg-white dark:bg-slate-800/50 p-4 rounded-xl border border-slate-200 dark:border-[#0891b2]/10 mb-6 flex flex-wrap items-center gap-4">

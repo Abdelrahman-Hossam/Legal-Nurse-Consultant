@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import caseService from '../../../services/case.service';
+import PagesTopBar, { pagesTopBarPrimaryClass } from '../../../shared/components/PagesTopBar';
 
 const CasesList = () => {
     const { pathname } = useLocation();
@@ -44,20 +45,12 @@ const CasesList = () => {
 
     return (
         <div>
-            <header className="bg-white dark:bg-slate-900 border-b -mx-8 -mt-8 mb-8 px-8 py-4">
-                <div className="flex justify-between items-center">
-                    <div>
-                        <h1 className="text-xl font-bold text-[#1f3b61] dark:text-white flex items-center gap-2">
-                            <span className="material-icons">folder_shared</span>
-                            Active Cases
-                        </h1>
-                    </div>
-                    <Link to={`${casesBase}/new`} className="bg-[#1f3b61] hover:bg-[#1f3b61]/90 text-white px-4 py-2 rounded-lg font-medium flex items-center gap-2">
-                        <span className="material-icons text-sm">add</span>
-                        New Case
-                    </Link>
-                </div>
-            </header>
+            <PagesTopBar variant="flush" title="Active Cases" icon="folder_shared">
+                <Link to={`${casesBase}/new`} className={pagesTopBarPrimaryClass}>
+                    <span className="material-icons text-sm">add</span>
+                    New Case
+                </Link>
+            </PagesTopBar>
 
             {/* Filters */}
             <div className="bg-white dark:bg-slate-900 rounded-xl shadow-sm border p-4 mb-6">

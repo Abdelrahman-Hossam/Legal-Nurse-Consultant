@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import caseService from '../../../services/case.service';
 import medicalRecordService from '../../../services/medicalRecord.service';
+import PagesTopBar, { pagesTopBarPrimaryClass, pagesTopBarSecondaryClass } from '../../../shared/components/PagesTopBar';
 
 const MedicalRecordsList = () => {
     const [searchQuery, setSearchQuery] = useState('');
@@ -228,30 +229,19 @@ const MedicalRecordsList = () => {
 
     return (
         <div className="max-w-7xl mx-auto">
-            {/* Header */}
-            <header className="mb-8">
-                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                    <div>
-                        <h1 className="text-2xl font-bold text-slate-900 dark:text-white">Medical Records</h1>
-                        <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
-                            Manage and search medical documentation with OCR capabilities
-                        </p>
-                    </div>
-                    <div className="flex items-center gap-3">
-                        <button className="flex items-center px-4 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 rounded-lg hover:bg-slate-50 transition-all text-sm font-medium">
-                            <span className="material-icons text-sm mr-2">filter_list</span>
-                            Filters
-                        </button>
-                        <button
-                            onClick={() => setShowUploadModal(true)}
-                            className="flex items-center px-5 py-2.5 bg-[#0891b2] hover:bg-teal-700 text-white rounded-lg shadow-lg transition-all text-sm font-semibold"
-                        >
-                            <span className="material-icons text-sm mr-2">upload_file</span>
-                            Upload Records
-                        </button>
-                    </div>
-                </div>
-            </header>
+            <PagesTopBar
+                title="Medical Records"
+                subtitle="Manage and search medical documentation with OCR capabilities"
+            >
+                <button type="button" className={pagesTopBarSecondaryClass}>
+                    <span className="material-icons text-sm">filter_list</span>
+                    Filters
+                </button>
+                <button type="button" onClick={() => setShowUploadModal(true)} className={pagesTopBarPrimaryClass}>
+                    <span className="material-icons text-sm">upload_file</span>
+                    Upload Records
+                </button>
+            </PagesTopBar>
 
             {/* Search & Filter Bar */}
             <div className="bg-white dark:bg-slate-800/50 p-4 rounded-xl border border-slate-200 dark:border-[#0891b2]/10 mb-6 flex flex-wrap items-center gap-4">

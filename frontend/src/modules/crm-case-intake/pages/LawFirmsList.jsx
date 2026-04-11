@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import lawFirmService from '../../../services/lawFirm.service';
+import PagesTopBar, { pagesTopBarPrimaryClass } from '../../../shared/components/PagesTopBar';
 
 const LawFirmsList = () => {
     const [searchTerm, setSearchTerm] = useState('');
@@ -97,23 +98,18 @@ const LawFirmsList = () => {
 
     return (
         <div className="max-w-7xl mx-auto">
-            <header className="mb-8">
-                <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
-                    <div>
-                        <h2 className="text-3xl font-bold text-slate-900 dark:text-white">Partner Law Firms</h2>
-                        <p className="text-slate-500 dark:text-slate-400 mt-1">
-                            Manage {pagination.total} registered law firms
-                        </p>
-                    </div>
-                    <button
-                        onClick={() => setShowCreateModal(true)}
-                        className="flex items-center px-5 py-2.5 bg-[#1f3b61] text-white font-semibold rounded-lg hover:bg-[#1f3b61]/90 transition-colors shadow-sm"
-                    >
-                        <span className="material-icons text-[20px] mr-2">add</span>
-                        Add Law Firm
-                    </button>
-                </div>
-            </header>
+            <PagesTopBar
+                titleAs="h2"
+                title="Partner Law Firms"
+                subtitle={`Manage ${pagination.total} registered law firms`}
+                titleSize="lg"
+                align="end"
+            >
+                <button type="button" onClick={() => setShowCreateModal(true)} className={pagesTopBarPrimaryClass}>
+                    <span className="material-icons text-[20px]">add</span>
+                    Add Law Firm
+                </button>
+            </PagesTopBar>
 
             {/* Search */}
             <section className="mb-6">
