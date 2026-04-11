@@ -141,7 +141,7 @@ const UsersManagement = () => {
 
     return (
         <div className="max-w-7xl mx-auto">
-            <PagesTopBar title="User Management" subtitle="Manage system users and permissions" align="end">
+            <PagesTopBar title="User Management" subtitle="Manage system users and permissions">
                 <button type="button" onClick={() => setShowAddModal(true)} className={pagesTopBarPrimaryClass}>
                     <span className="material-icons text-sm">person_add</span>
                     Add User

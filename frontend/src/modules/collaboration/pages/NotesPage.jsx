@@ -123,7 +123,6 @@ const NotesPage = () => {
             <PagesTopBar
                 title="Case Notes & Collaboration"
                 subtitle="Team collaboration and case notes"
-                align="end"
             />
 
             <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm p-6 mb-6">

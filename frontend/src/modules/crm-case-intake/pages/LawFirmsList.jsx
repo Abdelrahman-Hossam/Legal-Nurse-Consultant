@@ -103,7 +103,6 @@ const LawFirmsList = () => {
                 title="Partner Law Firms"
                 subtitle={`Manage ${pagination.total} registered law firms`}
                 titleSize="lg"
-                align="end"
             >
                 <button type="button" onClick={() => setShowCreateModal(true)} className={pagesTopBarPrimaryClass}>
                     <span className="material-icons text-[20px]">add</span>

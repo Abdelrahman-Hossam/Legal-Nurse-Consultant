@@ -195,26 +195,23 @@ const BillingPage = () => {
 
     return (
         <div className="max-w-7xl mx-auto">
-            <div className="mb-8">
-                <PagesTopBar
-                    marginBottom={false}
-                    className="mb-6"
-                    title="Billing & Time Tracking"
-                    subtitle="Track billable hours and manage client invoices securely."
-                >
-                    <button type="button" onClick={handleExportCSV} className={pagesTopBarSecondaryClass}>
-                        <span className="material-icons text-sm">download</span>
-                        Export CSV
-                    </button>
-                    <button type="button" onClick={() => setShowManualEntryModal(true)} className={pagesTopBarPrimaryClass}>
-                        <span className="material-icons text-sm">add</span>
-                        Manual Entry
-                    </button>
-                </PagesTopBar>
+            <PagesTopBar
+                title="Billing & Time Tracking"
+                subtitle="Track billable hours and manage client invoices securely."
+            >
+                <button type="button" onClick={handleExportCSV} className={pagesTopBarSecondaryClass}>
+                    <span className="material-icons text-sm">download</span>
+                    Export CSV
+                </button>
+                <button type="button" onClick={() => setShowManualEntryModal(true)} className={pagesTopBarPrimaryClass}>
+                    <span className="material-icons text-sm">add</span>
+                    Manual Entry
+                </button>
+            </PagesTopBar>
 
-                {/* Active Timer Widget */}
-                <div className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl p-5 shadow-sm">
-                    <div className="grid grid-cols-1 md:grid-cols-12 gap-6 items-center">
+            {/* Active Timer Widget */}
+            <div className="mb-8 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl p-5 shadow-sm">
+                <div className="grid grid-cols-1 md:grid-cols-12 gap-6 items-center">
                         <div className="md:col-span-4">
                             <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1">
                                 Active Project / Case
@@ -275,7 +272,6 @@ const BillingPage = () => {
                                 <span className="material-icons">more_vert</span>
                             </button>
                         </div>
-                    </div>
                 </div>
             </div>
 

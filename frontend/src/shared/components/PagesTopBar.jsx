@@ -14,6 +14,9 @@ const flushOuter =
 const defaultOuter =
     'bg-[#f3efe5] dark:bg-slate-900/40 border border-[#d9d4cb] dark:border-slate-700 rounded-xl px-5 py-4 md:px-6';
 
+/** Keeps title/actions aligned the same across routes (with or without subtitle or actions). */
+const headerMinHeight = 'min-h-[6rem] md:min-h-[6.25rem]';
+
 const PagesTopBar = ({
     title,
     subtitle,
@@ -21,7 +24,6 @@ const PagesTopBar = ({
     variant = 'default',
     titleAs: TitleTag = 'h1',
     titleSize = 'default',
-    align = 'center',
     marginBottom = true,
     titleClassName = '',
     className = '',
@@ -29,27 +31,30 @@ const PagesTopBar = ({
 }) => {
     const outer =
         variant === 'flush'
-            ? `${flushOuter} ${marginBottom ? 'mb-8' : ''} ${className}`.trim()
-            : `${defaultOuter} ${marginBottom ? 'mb-8' : ''} ${className}`.trim();
+            ? `${flushOuter} ${headerMinHeight} ${marginBottom ? 'mb-8' : ''} ${className}`.trim()
+            : `${defaultOuter} ${headerMinHeight} ${marginBottom ? 'mb-8' : ''} ${className}`.trim();
 
-    const rowAlign = align === 'end' ? 'md:items-end' : 'md:items-center';
     const titleSizeClass = titleSize === 'lg' ? 'text-3xl' : 'text-2xl';
 
     return (
         <header className={outer}>
-            <div className={`flex flex-col md:flex-row ${rowAlign} justify-between gap-4`}>
-                <div className="min-w-0">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                <div className="min-w-0 flex flex-col justify-center">
                     <TitleTag
                         className={`${titleSizeClass} font-bold text-[#1f3b61] dark:text-white flex items-center gap-2 ${titleClassName}`.trim()}
                     >
                         {icon ? <span className="material-icons shrink-0">{icon}</span> : null}
                         {title}
                     </TitleTag>
-                    {subtitle ? (
-                        <p className="text-sm text-slate-600 dark:text-slate-400 mt-1 max-w-2xl">{subtitle}</p>
-                    ) : null}
+                    <div className="mt-1 min-h-[1.375rem]">
+                        {subtitle ? (
+                            <p className="text-sm text-slate-600 dark:text-slate-400 max-w-2xl leading-snug">{subtitle}</p>
+                        ) : null}
+                    </div>
                 </div>
-                {children ? <div className="flex flex-wrap items-center gap-3 shrink-0">{children}</div> : null}
+                {children ? (
+                    <div className="flex flex-wrap items-center gap-3 shrink-0 md:self-center">{children}</div>
+                ) : null}
             </div>
         </header>
     );

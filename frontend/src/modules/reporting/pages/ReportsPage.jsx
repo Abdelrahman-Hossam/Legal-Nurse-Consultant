@@ -109,7 +109,6 @@ const ReportsPage = () => {
                 title="Report Generation Center"
                 subtitle="Select a standardized template to begin your medical-legal analysis or create a custom structured report."
                 titleSize="lg"
-                align="end"
             >
                 <button
                     type="button"

@@ -121,7 +121,6 @@ const DamagesTracking = () => {
             <PagesTopBar
                 title="Damages Tracking"
                 subtitle="Document injuries and calculate damages"
-                align="end"
             >
                 <button type="button" onClick={() => setShowAddModal(true)} className={pagesTopBarPrimaryClass}>
                     <span className="material-icons text-sm">add</span>

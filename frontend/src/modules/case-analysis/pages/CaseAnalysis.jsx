@@ -160,7 +160,6 @@ const CaseAnalysis = () => {
             <PagesTopBar
                 title="Case Analysis"
                 subtitle="Analyze standards of care and identify deviations"
-                align="end"
             >
                 <button type="button" onClick={() => setShowAddModal(true)} className={pagesTopBarPrimaryClass}>
                     <span className="material-icons text-sm">add</span>

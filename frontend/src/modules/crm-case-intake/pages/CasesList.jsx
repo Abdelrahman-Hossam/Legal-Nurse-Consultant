@@ -45,7 +45,7 @@ const CasesList = () => {
 
     return (
         <div>
-            <PagesTopBar variant="flush" title="Active Cases" icon="folder_shared">
+            <PagesTopBar title="Active Cases" icon="folder_shared">
                 <Link to={`${casesBase}/new`} className={pagesTopBarPrimaryClass}>
                     <span className="material-icons text-sm">add</span>
                     New Case

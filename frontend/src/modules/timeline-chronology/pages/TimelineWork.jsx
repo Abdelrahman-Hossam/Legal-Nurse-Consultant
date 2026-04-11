@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import caseService from '../../../services/case.service';
 import timelineService from '../../../services/timeline.service';
+import PagesTopBar from '../../../shared/components/PagesTopBar';
 
 const TimelineWork = () => {
     const [searchQuery, setSearchQuery] = useState('');
@@ -114,28 +115,31 @@ const TimelineWork = () => {
         <div className="min-h-screen bg-background-light dark:bg-background-dark">
             {/* Main Content Area */}
             <main className="flex-1 flex flex-col h-screen overflow-hidden">
-                {/* Top Navigation / Security Header */}
-                <header className="h-16 flex items-center justify-between px-8 bg-white/5 dark:bg-background-dark/50 border-b border-slate-200 dark:border-border-dark backdrop-blur-sm">
-                    <div className="flex items-center gap-4">
-                        <h1 className="text-xl font-bold tracking-tight">Timeline Work Queue</h1>
-                    </div>
-                    <div className="flex items-center gap-6">
-                        <div className="relative">
-                            <span className="material-icons absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm">search</span>
-                            <input
-                                className="pl-10 pr-4 py-2 bg-slate-100 dark:bg-neutral-dark border-none rounded-lg text-sm focus:ring-2 focus:ring-primary w-64 transition-all"
-                                placeholder="Search Case ID or Initials..."
-                                type="text"
-                                value={searchQuery}
-                                onChange={(e) => setSearchQuery(e.target.value)}
-                            />
+                <div className="shrink-0">
+                    <PagesTopBar
+                        title="Timeline Work Queue"
+                        subtitle="Chronologies and deadlines across cases"
+                        marginBottom={false}
+                        className="mb-6"
+                    >
+                        <div className="flex flex-wrap items-center gap-4">
+                            <div className="relative">
+                                <span className="material-icons absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm">search</span>
+                                <input
+                                    className="pl-10 pr-4 py-2 bg-slate-100 dark:bg-neutral-dark border border-slate-200 dark:border-border-dark rounded-lg text-sm focus:ring-2 focus:ring-primary w-64 max-w-full transition-all"
+                                    placeholder="Search Case ID or Initials..."
+                                    type="text"
+                                    value={searchQuery}
+                                    onChange={(e) => setSearchQuery(e.target.value)}
+                                />
+                            </div>
+                            <div className="flex items-center gap-2 text-slate-400">
+                                <span className="material-icons text-lg">notifications</span>
+                                <div className="w-2 h-2 bg-primary rounded-full -ml-3 -mt-2"></div>
+                            </div>
                         </div>
-                        <div className="flex items-center gap-2 text-slate-400">
-                            <span className="material-icons text-lg">notifications</span>
-                            <div className="w-2 h-2 bg-primary rounded-full -ml-3 -mt-2"></div>
-                        </div>
-                    </div>
-                </header>
+                    </PagesTopBar>
+                </div>
 
                 {/* Stats & Controls */}
                 <section className="p-8 pb-4">
