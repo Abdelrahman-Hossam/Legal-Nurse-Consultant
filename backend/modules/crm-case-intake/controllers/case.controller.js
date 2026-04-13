@@ -2,16 +2,33 @@ const Case = require('../../../models/Case.model');
 const AppError = require('../../../shared/errors/AppError');
 const caseService = require('../services/case.service');
 
+/** Safe fragment for use inside MongoDB $regex (user-supplied search). */
+const escapeRegex = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
 // Get all cases
 exports.getAllCases = async (req, res, next) => {
     try {
         const { status, priority, caseType, search, page = 1, limit = 10 } = req.query;
 
-        const query = {};
-        if (status) query.status = status;
-        if (priority) query.priority = priority;
-        if (caseType) query.caseType = caseType;
-        if (search) query.$text = { $search: search };
+        const conditions = [];
+        if (status) conditions.push({ status });
+        if (priority) conditions.push({ priority });
+        if (caseType) conditions.push({ caseType });
+
+        const trimmedSearch = typeof search === 'string' ? search.trim() : '';
+        if (trimmedSearch) {
+            const safe = escapeRegex(trimmedSearch);
+            conditions.push({
+                $or: [
+                    { caseNumber: { $regex: safe, $options: 'i' } },
+                    { caseName: { $regex: safe, $options: 'i' } },
+                    { description: { $regex: safe, $options: 'i' } }
+                ]
+            });
+        }
+
+        const query =
+            conditions.length === 0 ? {} : conditions.length === 1 ? conditions[0] : { $and: conditions };
 
         const cases = await Case.find(query)
             .populate('client', 'fullName email phone')

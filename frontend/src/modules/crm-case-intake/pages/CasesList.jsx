@@ -88,6 +88,7 @@ const CasesList = () => {
     const [stats, setStats] = useState(null);
 
     useEffect(() => {
+        let stale = false;
         const load = async () => {
             try {
                 setLoading(true);
@@ -102,6 +103,8 @@ const CasesList = () => {
                     caseService.getCaseStats().catch(() => null)
                 ]);
 
+                if (stale) return;
+
                 const root = casesPayload?.data ?? casesPayload;
                 setCases(root?.cases || []);
                 setPagination(root?.pagination || { total: 0, page: 1, pages: 1 });
@@ -113,12 +116,18 @@ const CasesList = () => {
                     setStats(null);
                 }
             } catch (error) {
+                if (stale) return;
                 console.error('Error fetching cases:', error);
+                setCases([]);
+                setPagination({ total: 0, page: 1, pages: 1 });
             } finally {
-                setLoading(false);
+                if (!stale) setLoading(false);
             }
         };
         load();
+        return () => {
+            stale = true;
+        };
     }, [statusFilter, typeFilter, searchTerm]);
 
     const summaryLine = useMemo(() => {
