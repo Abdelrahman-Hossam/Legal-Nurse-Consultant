@@ -1,7 +1,79 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import caseService from '../../../services/case.service';
-import PagesTopBar, { pagesTopBarPrimaryClass } from '../../../shared/components/PagesTopBar';
+import PagesTopBar, {
+    pagesTopBarPrimaryClass,
+    pagesTopBarSecondaryClass,
+    pagesTopBarUiSansClass
+} from '../../../shared/components/PagesTopBar';
+
+/** Cream canvas — matches reference header screenshots */
+const PAGE_BG = 'bg-[#f3efe5]';
+
+const countInAggregate = (rows, id) => rows?.find((r) => r._id === id)?.count ?? 0;
+
+const formatCaseType = (type) =>
+    (type || '')
+        .split('-')
+        .filter(Boolean)
+        .map((w) => w.toUpperCase())
+        .join(' ') || '—';
+
+/** Docket row label + visual bucket (matches reference badges). */
+const docketStatus = (caseItem) => {
+    if (caseItem.priority === 'urgent') return { key: 'urgent', label: 'URGENT' };
+    if (caseItem.status === 'review') return { key: 'review', label: 'IN REVIEW' };
+    if (caseItem.status === 'active') return { key: 'active', label: 'ACTIVE' };
+    if (caseItem.status === 'pending') return { key: 'expert', label: 'EXPERT REVIEW' };
+    if (caseItem.status === 'intake') return { key: 'intake', label: 'PENDING INTAKE' };
+    if (caseItem.status === 'closed') return { key: 'closed', label: 'CLOSED' };
+    if (caseItem.status === 'archived') return { key: 'archived', label: 'ARCHIVED' };
+    return { key: 'default', label: String(caseItem.status || '—').toUpperCase() };
+};
+
+const statusBadgeClass = (key) => {
+    const base =
+        'inline-flex items-center justify-center px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.06em] border';
+    const map = {
+        urgent: 'border-red-300 bg-red-50 text-red-800',
+        review: 'border-amber-300 bg-amber-50 text-amber-900',
+        active: 'border-emerald-400 bg-emerald-50 text-emerald-900',
+        expert: 'border-slate-300 bg-slate-100 text-slate-700',
+        intake: 'border-slate-300 bg-white text-slate-600',
+        closed: 'border-slate-200 bg-slate-50 text-slate-500',
+        archived: 'border-slate-200 bg-slate-50 text-slate-500',
+        default: 'border-slate-300 bg-white text-slate-600'
+    };
+    return `${base} ${map[key] || map.default}`;
+};
+
+const deadlineForCase = (caseItem) => {
+    const d = caseItem.filingDate || caseItem.incidentDate || caseItem.updatedAt || caseItem.createdAt;
+    if (!d) return null;
+    const date = new Date(d);
+    if (Number.isNaN(date.getTime())) return null;
+    return date;
+};
+
+const deadlineColorClass = (key) => {
+    const map = {
+        urgent: 'text-red-700',
+        review: 'text-amber-700',
+        active: 'text-emerald-800',
+        expert: 'text-slate-600',
+        intake: 'text-slate-600',
+        closed: 'text-slate-400',
+        archived: 'text-slate-400',
+        default: 'text-slate-800'
+    };
+    return map[key] || map.default;
+};
+
+const formatDeadline = (date) => {
+    const mon = date.toLocaleDateString('en-US', { month: 'short' });
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${mon} ${day}`;
+};
 
 const CasesList = () => {
     const { pathname } = useLocation();
@@ -9,160 +81,292 @@ const CasesList = () => {
     const casesBase = isStaff ? '/staff/cases' : '/cases';
     const [searchTerm, setSearchTerm] = useState('');
     const [statusFilter, setStatusFilter] = useState('all');
+    const [typeFilter, setTypeFilter] = useState('all');
     const [cases, setCases] = useState([]);
     const [loading, setLoading] = useState(true);
-    const [openMenuId, setOpenMenuId] = useState(null);
+    const [pagination, setPagination] = useState({ total: 0, page: 1, pages: 1 });
+    const [stats, setStats] = useState(null);
 
     useEffect(() => {
-        fetchCases();
-    }, [statusFilter, searchTerm]);
+        const load = async () => {
+            try {
+                setLoading(true);
+                const params = {
+                    limit: 100,
+                    status: statusFilter !== 'all' ? statusFilter : undefined,
+                    caseType: typeFilter !== 'all' ? typeFilter : undefined,
+                    search: searchTerm || undefined
+                };
+                const [casesPayload, statsPayload] = await Promise.all([
+                    caseService.getAllCases(params),
+                    caseService.getCaseStats().catch(() => null)
+                ]);
 
-    const fetchCases = async () => {
-        try {
-            setLoading(true);
-            const params = {
-                status: statusFilter !== 'all' ? statusFilter : undefined,
-                search: searchTerm || undefined
-            };
-            const response = await caseService.getAllCases(params);
-            setCases(response.data.cases || []);
-        } catch (error) {
-            console.error('Error fetching cases:', error);
-        } finally {
-            setLoading(false);
-        }
-    };
+                const root = casesPayload?.data ?? casesPayload;
+                setCases(root?.cases || []);
+                setPagination(root?.pagination || { total: 0, page: 1, pages: 1 });
 
-    const getStatusClasses = (status) => {
-        const colors = {
-            active: 'bg-emerald-100 text-emerald-800',
-            review: 'bg-amber-100 text-amber-800',
-            intake: 'bg-blue-100 text-blue-800',
-            closed: 'bg-slate-100 text-slate-800'
+                const statsRoot = statsPayload?.data ?? statsPayload;
+                if (statsRoot?.total != null) {
+                    setStats(statsRoot);
+                } else {
+                    setStats(null);
+                }
+            } catch (error) {
+                console.error('Error fetching cases:', error);
+            } finally {
+                setLoading(false);
+            }
         };
-        return colors[status] || colors.intake;
-    };
+        load();
+    }, [statusFilter, typeFilter, searchTerm]);
+
+    const summaryLine = useMemo(() => {
+        const total = stats?.total ?? pagination.total ?? cases.length;
+        const closed = countInAggregate(stats?.byStatus, 'closed') + countInAggregate(stats?.byStatus, 'archived');
+        const activeCases =
+            stats?.byStatus != null ? Math.max(0, total - closed) : cases.filter((c) => c.status !== 'closed' && c.status !== 'archived').length;
+
+        let urgent;
+        let awaitingReport;
+        if (stats?.byPriority && stats?.byStatus) {
+            urgent = countInAggregate(stats.byPriority, 'urgent');
+            awaitingReport = countInAggregate(stats.byStatus, 'pending') + countInAggregate(stats.byStatus, 'intake');
+        } else {
+            urgent = cases.filter((c) => c.priority === 'urgent').length;
+            awaitingReport = cases.filter((c) => c.status === 'pending' || c.status === 'intake').length;
+        }
+        return `${activeCases} active cases · ${urgent} urgent · ${awaitingReport} awaiting report`;
+    }, [stats, pagination.total, cases]);
+
+    const showingLine = useMemo(() => {
+        const total = pagination.total ?? cases.length;
+        const n = cases.length;
+        return `Showing ${n} of ${total}`;
+    }, [cases.length, pagination.total]);
+
+    const exportCsv = useCallback(() => {
+        const headers = ['Case ID', 'Matter', 'Attorney', 'Type', 'Status', 'Deadline'];
+        const rows = cases.map((c) => {
+            const ds = docketStatus(c);
+            const dd = deadlineForCase(c);
+            const firm = c.lawFirm?.firmName || '';
+            const clientName = c.client?.fullName || '';
+            const matter = c.caseName || c.title || firm;
+            const attorney = c.lawFirm?.contactPerson || clientName;
+            return [
+                c.caseNumber || '',
+                matter,
+                attorney,
+                formatCaseType(c.caseType),
+                ds.label,
+                dd ? formatDeadline(dd) : ''
+            ]
+                .map((cell) => `"${String(cell).replace(/"/g, '""')}"`)
+                .join(',');
+        });
+        const csv = [headers.join(','), ...rows].join('\n');
+        const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `active-docket-${new Date().toISOString().slice(0, 10)}.csv`;
+        a.click();
+        URL.revokeObjectURL(url);
+    }, [cases]);
 
     return (
-        <div>
-            <PagesTopBar title="Active Cases" icon="folder_shared">
-                <Link to={`${casesBase}/new`} className={pagesTopBarPrimaryClass}>
-                    <span className="material-icons text-sm">add</span>
-                    New Case
-                </Link>
-            </PagesTopBar>
+        <div className={`${PAGE_BG} -mx-4 px-4 pb-12 pt-1 md:-mx-8 md:px-8 `}>
+            <div className="relative mx-auto max-w-[1200px]">
+                <div className="relative z-[1]">
+                    <div className="border-b bg-[#f3efe5] border-[#e8e3d9] pb-10 mb-10 dark:border-slate-700/80">
+                        <PagesTopBar
+                            eyebrow="Case management"
+                            title={
+                                <span className="font-playfair text-[2rem] font-[900] leading-[1.12] tracking-[-0.02em] text-[#0a0a0a] md:text-[2.5rem] dark:text-[#f4f1ec]">
+                                    Active{' '}
+                                    <span className="font-[900] tracking-[-0.02em] italic text-[#801829] dark:text-[#d6556a]">Docket</span>
+                                </span>
+                            }
+                            titleClassName="!m-0 !p-0"
+                            subtitle={summaryLine}
+                            className="!mb-0 !min-h-0 !rounded-none !border-0 !bg-transparent !px-0 !py-0 !shadow-none dark:!bg-transparent"
+                            watermark={
+                                <span className="select-none whitespace-nowrap font-playfair text-[clamp(2.5rem,9vw,4.75rem)] font-normal leading-none tracking-tight text-[#1a1409]/[0.09] md:text-[clamp(3rem,10vw,5.75rem)] dark:text-white/[0.06]">
+                                    Cases
+                                </span>
+                            }
+                        >
+                            <div className={`flex flex-wrap items-center gap-3 ${pagesTopBarUiSansClass}`}>
+                                <Link to={`${casesBase}/new`} className={`${pagesTopBarPrimaryClass} !px-6`}>
+                                    <span className="material-icons !text-[18px]">add</span>
+                                    Open new case
+                                </Link>
+                                <button type="button" onClick={exportCsv} className={`${pagesTopBarSecondaryClass} !px-6`}>
+                                    Export csv
+                                </button>
+                            </div>
+                        </PagesTopBar>
+                    </div>
 
-            {/* Filters */}
-            <div className="bg-white dark:bg-slate-900 rounded-xl shadow-sm border p-4 mb-6">
-                <div className="flex flex-wrap items-center gap-4">
-                    <div className="relative flex-grow min-w-[300px]">
-                        <span className="material-icons absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm">search</span>
+                    {/* Filter row — reference: white dropdowns, count right */}
+                    <div className="mb-5 flex flex-col gap-4 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">
+                        <div className={`flex flex-wrap items-center gap-4 ${pagesTopBarUiSansClass}`}>
+                            <select
+                                className="h-11 min-w-[168px] cursor-pointer rounded-md border border-[#d1d1d1] bg-white px-4 py-2 text-[14px] font-normal text-[#2d2a26] shadow-sm focus:border-[#801829] focus:outline-none focus:ring-1 focus:ring-[#801829]/25"
+                                value={statusFilter}
+                                onChange={(e) => setStatusFilter(e.target.value)}
+                            >
+                                <option value="all">All Statuses</option>
+                                <option value="active">Active</option>
+                                <option value="review">In Review</option>
+                                <option value="intake">Pending Intake</option>
+                                <option value="pending">Pending</option>
+                                <option value="closed">Closed</option>
+                                <option value="archived">Archived</option>
+                            </select>
+                            <select
+                                className="h-11 min-w-[168px] cursor-pointer rounded-md border border-[#d1d1d1] bg-white px-4 py-2 text-[14px] font-normal text-[#2d2a26] shadow-sm focus:border-[#801829] focus:outline-none focus:ring-1 focus:ring-[#801829]/25"
+                                value={typeFilter}
+                                onChange={(e) => setTypeFilter(e.target.value)}
+                            >
+                                <option value="all">All Types</option>
+                                <option value="medical-malpractice">Medical Malpractice</option>
+                                <option value="personal-injury">Personal Injury</option>
+                                <option value="workers-compensation">Workers Compensation</option>
+                                <option value="product-liability">Product Liability</option>
+                                <option value="other">Other</option>
+                            </select>
+                        </div>
+                        <p className={`text-[13px] font-normal text-[#a8a29e] sm:text-right ${pagesTopBarUiSansClass}`}>
+                            {showingLine}
+                        </p>
+                    </div>
+
+                    {/* Search */}
+                    <div className={`relative mb-8 ${pagesTopBarUiSansClass}`}>
+                        <span className="material-icons pointer-events-none absolute left-3.5 top-1/2 z-[1] -translate-y-1/2 text-[22px] text-[#b9b3a9]">
+                            search
+                        </span>
                         <input
-                            className="w-full pl-10 pr-3 py-2 border rounded-lg text-sm focus:ring-2 focus:ring-[#1f3b61]/20 outline-none"
+                            className="h-12 w-full rounded-md border border-[#d1d1d1] bg-white pl-12 pr-4 text-[14px] font-normal text-[#1a1a1a] shadow-sm placeholder:text-[#a8a29e] focus:border-[#801829] focus:outline-none focus:ring-1 focus:ring-[#801829]/20"
                             placeholder="Search case #, client or attorney..."
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
                         />
                     </div>
-                    <select
-                        className="px-3 py-2 border rounded-lg text-sm focus:ring-2 focus:ring-[#1f3b61]/20 outline-none"
-                        value={statusFilter}
-                        onChange={(e) => setStatusFilter(e.target.value)}
-                    >
-                        <option value="all">All Statuses</option>
-                        <option value="active">Active</option>
-                        <option value="review">In Review</option>
-                        <option value="intake">Pending Intake</option>
-                        <option value="closed">Closed</option>
-                    </select>
-                </div>
-            </div>
 
-            {/* Table */}
-            <div className="bg-white dark:bg-slate-900 rounded-xl shadow-sm border overflow-hidden">
-                <table className="w-full">
-                    <thead>
-                        <tr className="bg-[#1f3b61]/5 border-b">
-                            <th className="px-6 py-4 text-xs font-semibold text-[#1f3b61]/70 uppercase text-left">Case Number</th>
-                            <th className="px-6 py-4 text-xs font-semibold text-[#1f3b61]/70 uppercase text-left">Client / Firm</th>
-                            <th className="px-6 py-4 text-xs font-semibold text-[#1f3b61]/70 uppercase text-left">Case Type</th>
-                            <th className="px-6 py-4 text-xs font-semibold text-[#1f3b61]/70 uppercase text-left">Status</th>
-                            <th className="px-6 py-4 text-xs font-semibold text-[#1f3b61]/70 uppercase text-right">Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody className="divide-y">
-                        {loading ? (
-                            <tr>
-                                <td colSpan="5" className="px-6 py-12 text-center">
-                                    <span className="material-icons animate-spin text-4xl">refresh</span>
-                                    <p className="mt-2 text-slate-500">Loading...</p>
-                                </td>
-                            </tr>
-                        ) : cases.length === 0 ? (
-                            <tr>
-                                <td colSpan="5" className="px-6 py-12 text-center text-slate-500">No cases found</td>
-                            </tr>
-                        ) : (
-                            cases.map((caseItem) => (
-                                <tr key={caseItem._id} className="hover:bg-[#1f3b61]/5 transition-colors">
-                                    <td className="px-6 py-4">
-                                        <Link to={`${casesBase}/${caseItem._id}`} className="font-mono font-medium text-[#1f3b61] hover:underline">
-                                            {caseItem.caseNumber}
-                                        </Link>
-                                        <div className="text-[10px] text-slate-400 mt-0.5">
-                                            {new Date(caseItem.createdAt).toLocaleDateString()}
-                                        </div>
-                                    </td>
-                                    <td className="px-6 py-4">
-                                        <div className="text-sm font-semibold">{caseItem.lawFirm?.firmName || 'N/A'}</div>
-                                        <div className="text-xs text-slate-500">{caseItem.client?.fullName || 'N/A'}</div>
-                                    </td>
-                                    <td className="px-6 py-4 text-sm">{caseItem.caseType}</td>
-                                    <td className="px-6 py-4">
-                                        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusClasses(caseItem.status)}`}>
-                                            {caseItem.status}
-                                        </span>
-                                    </td>
-                                    <td className="px-6 py-4 text-right">
-                                        <div className="relative">
-                                            <button
-                                                onClick={() => setOpenMenuId(openMenuId === caseItem._id ? null : caseItem._id)}
-                                                className="text-[#1f3b61]/40 hover:text-[#1f3b61] p-1"
+                    {/* Table — reference column set */}
+                    <div className="overflow-hidden rounded-sm border border-[#e8e3d9] bg-white shadow-[0_1px_2px_rgba(0,0,0,0.04)]">
+                        <div className="overflow-x-auto">
+                            <table className="w-full min-w-[960px] border-collapse text-left">
+                                <thead>
+                                    <tr className="border-b border-[#e8e3d9] bg-[#f0ebe3]">
+                                        {['Case ID', 'Matter / Attorney', 'Type', 'Status', 'Deadline', 'Action'].map((label) => (
+                                            <th
+                                                key={label}
+                                                className="px-5 py-4 text-[10px] font-semibold uppercase tracking-[0.14em] text-[#8a8580]"
                                             >
-                                                <span className="material-icons">more_vert</span>
-                                            </button>
-
-                                            {openMenuId === caseItem._id && (
-                                                <>
-                                                    <div
-                                                        className="fixed inset-0 z-10"
-                                                        onClick={() => setOpenMenuId(null)}
-                                                    />
-                                                    <div className="absolute right-0 mt-2 w-48 bg-white dark:bg-slate-800 rounded-lg shadow-lg border border-slate-200 dark:border-slate-700 py-1 z-20">
+                                                {label.toUpperCase()}
+                                            </th>
+                                        ))}
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {loading ? (
+                                        <tr>
+                                            <td colSpan="6" className="px-5 py-20 text-center">
+                                                <span className="material-icons animate-spin text-4xl text-[#801829]/50">refresh</span>
+                                                <p className="mt-3 text-[13px] text-[#8a8580]">Loading…</p>
+                                            </td>
+                                        </tr>
+                                    ) : cases.length === 0 ? (
+                                        <tr>
+                                            <td colSpan="6" className="px-5 py-20 text-center text-[13px] text-[#8a8580]">
+                                                No cases found
+                                            </td>
+                                        </tr>
+                                    ) : (
+                                        cases.map((caseItem, idx) => {
+                                            const ds = docketStatus(caseItem);
+                                            const dd = deadlineForCase(caseItem);
+                                            const firm = caseItem.lawFirm?.firmName || '';
+                                            const clientName = caseItem.client?.fullName || '—';
+                                            const matter = caseItem.caseName || caseItem.title || firm || '—';
+                                            const attorney =
+                                                caseItem.lawFirm?.contactPerson ||
+                                                (clientName !== '—' ? clientName : firm || '—');
+                                            const attorneyLine =
+                                                !attorney || attorney === '—'
+                                                    ? '—'
+                                                    : attorney.startsWith('Atty.')
+                                                      ? attorney
+                                                      : `Atty. ${attorney}`;
+                                            return (
+                                                <tr
+                                                    key={caseItem._id}
+                                                    className={`border-b border-[#efeae2] last:border-b-0 ${
+                                                        idx % 2 === 0 ? 'bg-white' : 'bg-[#fcfaf7]'
+                                                    }`}
+                                                >
+                                                    <td className="px-5 py-5 align-middle">
                                                         <Link
                                                             to={`${casesBase}/${caseItem._id}`}
-                                                            className="flex items-center gap-2 px-4 py-2 text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700"
+                                                            className="text-[13px] font-normal tracking-wide text-[#a8a29e] hover:text-[#801829]"
                                                         >
-                                                            <span className="material-icons text-sm">visibility</span>
-                                                            View Details
+                                                            {caseItem.caseNumber}
                                                         </Link>
-                                                        <Link
-                                                            to={`${casesBase}/${caseItem._id}/edit`}
-                                                            className="flex items-center gap-2 px-4 py-2 text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700"
-                                                        >
-                                                            <span className="material-icons text-sm">edit</span>
-                                                            Edit Case
-                                                        </Link>
-                                                    </div>
-                                                </>
-                                            )}
-                                        </div>
-                                    </td>
-                                </tr>
-                            ))
-                        )}
-                    </tbody>
-                </table>
+                                                    </td>
+                                                    <td className="max-w-[280px] px-5 py-5 align-middle">
+                                                        <div className="font-playfair text-[15px] font-bold leading-snug text-[#1a1a1a]">
+                                                            {matter}
+                                                        </div>
+                                                        <div className="mt-1 text-[12px] font-normal text-[#8a8580]">{attorneyLine}</div>
+                                                    </td>
+                                                    <td className="px-5 py-5 align-middle">
+                                                        <span className="inline-block border border-[#d4cfc4] bg-[#f7f4ee] px-2.5 py-1.5 text-[10px] font-bold uppercase tracking-[0.08em] text-[#3d3a36]">
+                                                            {formatCaseType(caseItem.caseType)}
+                                                        </span>
+                                                    </td>
+                                                    <td className="px-5 py-5 align-middle">
+                                                        <span className={statusBadgeClass(ds.key)}>{ds.label}</span>
+                                                    </td>
+                                                    <td className="px-5 py-5 align-middle">
+                                                        {dd ? (
+                                                            <span
+                                                                className={`text-[13px] font-bold tabular-nums ${deadlineColorClass(ds.key)}`}
+                                                            >
+                                                                {formatDeadline(dd)}
+                                                            </span>
+                                                        ) : (
+                                                            <span className="text-[13px] font-semibold text-[#c4c0b8]">—</span>
+                                                        )}
+                                                    </td>
+                                                    <td className="px-5 py-5 align-middle">
+                                                        <div className="flex flex-wrap items-center gap-4">
+                                                            <Link
+                                                                to={`${casesBase}/${caseItem._id}`}
+                                                                className="inline-flex items-center justify-center rounded border border-[#d4cfc4] bg-[#f7f4ee] px-4 py-2 text-[10px] font-bold uppercase tracking-[0.12em] text-[#5c574e] transition-colors hover:border-[#9a948a] hover:bg-[#efeae2]"
+                                                            >
+                                                                Open
+                                                            </Link>
+                                                            <Link
+                                                                to={`${casesBase}/${caseItem._id}`}
+                                                                className="text-[10px] font-bold uppercase tracking-[0.12em] text-[#a8a29e] transition-colors hover:text-[#801829]"
+                                                            >
+                                                                Edit
+                                                            </Link>
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                            );
+                                        })
+                                    )}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     );
