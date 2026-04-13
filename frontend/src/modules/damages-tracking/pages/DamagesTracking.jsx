@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import caseService from '../../../services/case.service';
 import damagesService from '../services/damages.service';
+import PagesTopBar, { pagesTopBarPrimaryClass } from '../../../shared/components/PagesTopBar';
 
 const DamagesTracking = () => {
     const [selectedCase, setSelectedCase] = useState('');
@@ -117,19 +118,15 @@ const DamagesTracking = () => {
 
     return (
         <div className="max-w-7xl mx-auto">
-            <div className="flex justify-between items-end mb-8">
-                <div>
-                    <h1 className="text-2xl font-bold text-slate-900 dark:text-white">Damages Tracking</h1>
-                    <p className="text-slate-500 mt-1">Document injuries and calculate damages</p>
-                </div>
-                <button
-                    onClick={() => setShowAddModal(true)}
-                    className="bg-[#0891b2] hover:bg-teal-700 text-white px-5 py-2.5 rounded-lg font-semibold flex items-center gap-2 shadow-sm transition-all transform active:scale-95"
-                >
+            <PagesTopBar
+                title="Damages Tracking"
+                subtitle="Document injuries and calculate damages"
+            >
+                <button type="button" onClick={() => setShowAddModal(true)} className={pagesTopBarPrimaryClass}>
                     <span className="material-icons text-sm">add</span>
                     Add Damage Item
                 </button>
-            </div>
+            </PagesTopBar>
 
             <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm p-6 mb-6">
                 <div className="flex items-center gap-4">

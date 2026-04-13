@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import api from '../../../services/api.service';
 import searchService from '../../../services/search.service';
+import PagesTopBar from '../../../shared/components/PagesTopBar';
 
 const SearchPage = () => {
     const [searchQuery, setSearchQuery] = useState('');
@@ -62,13 +63,10 @@ const SearchPage = () => {
 
     return (
         <div className="max-w-7xl mx-auto">
-            {/* Header */}
-            <header className="mb-8">
-                <h1 className="text-2xl font-bold text-slate-900 dark:text-white">Medical Record Search</h1>
-                <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
-                    Search through OCR-processed medical documents
-                </p>
-            </header>
+            <PagesTopBar
+                title="Medical Record Search"
+                subtitle="Search through OCR-processed medical documents"
+            />
 
             {/* Search Form */}
             <form onSubmit={handleSearch} className="bg-white dark:bg-slate-800/50 p-6 rounded-xl border border-slate-200 dark:border-[#0891b2]/10 mb-6">

@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import caseService from '../../../services/case.service';
 import caseAnalysisService from '../../../services/caseAnalysis.service';
 import medicalRecordService from '../../../services/medicalRecord.service';
+import PagesTopBar, { pagesTopBarPrimaryClass } from '../../../shared/components/PagesTopBar';
 
 const CaseAnalysis = () => {
     const [selectedCase, setSelectedCase] = useState('');
@@ -156,20 +157,15 @@ const CaseAnalysis = () => {
 
     return (
         <div className="max-w-7xl mx-auto">
-            {/* Header */}
-            <div className="flex justify-between items-end mb-8">
-                <div>
-                    <h1 className="text-2xl font-bold text-slate-900 dark:text-white">Case Analysis</h1>
-                    <p className="text-slate-500 mt-1">Analyze standards of care and identify deviations</p>
-                </div>
-                <button
-                    onClick={() => setShowAddModal(true)}
-                    className="bg-[#0891b2] hover:bg-teal-700 text-white px-5 py-2.5 rounded-lg font-semibold flex items-center gap-2 shadow-sm transition-all transform active:scale-95"
-                >
+            <PagesTopBar
+                title="Case Analysis"
+                subtitle="Analyze standards of care and identify deviations"
+            >
+                <button type="button" onClick={() => setShowAddModal(true)} className={pagesTopBarPrimaryClass}>
                     <span className="material-icons text-sm">add</span>
                     Add Finding
                 </button>
-            </div>
+            </PagesTopBar>
 
             {/* Case Selector */}
             <div className="bg-white dark:bg-slate-900 rounded-xl border-2 border-slate-200 dark:border-slate-700 shadow-md p-6 mb-6">

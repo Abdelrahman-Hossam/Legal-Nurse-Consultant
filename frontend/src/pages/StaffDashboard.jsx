@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import caseService from '../services/case.service';
 import deadlineService from '../services/deadline.service';
 import taskService from '../services/task.service';
+import PagesTopBar from '../shared/components/PagesTopBar';
 
 const StaffDashboard = () => {
     const [userName, setUserName] = useState('User');
@@ -63,13 +64,10 @@ const StaffDashboard = () => {
 
     return (
         <div className="max-w-[1600px] mx-auto">
-            {/* Welcome Header & Stats */}
-            <header className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-8">
-                <div>
-                    <h1 className="text-2xl font-bold text-slate-900 dark:text-white">Good Morning, {userName}</h1>
-                    <p className="text-slate-500 mt-1">You have {stats.pendingTasks || 0} tasks pending for this week.</p>
-                </div>
-            </header>
+            <PagesTopBar
+                title={`Good Morning, ${userName}`}
+                subtitle={`You have ${stats.pendingTasks || 0} tasks pending for this week.`}
+            />
 
             <div className="grid grid-cols-12 gap-6">
                 {/* Left Column: Assigned Cases */}

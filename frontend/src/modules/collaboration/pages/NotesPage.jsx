@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import PagesTopBar from '../../../shared/components/PagesTopBar';
 import caseService from '../../../services/case.service';
 import noteService from '../../../services/note.service';
 
@@ -119,12 +120,10 @@ const NotesPage = () => {
 
     return (
         <div className="max-w-7xl mx-auto">
-            <div className="flex justify-between items-end mb-8">
-                <div>
-                    <h1 className="text-2xl font-bold text-slate-900 dark:text-white">Case Notes & Collaboration</h1>
-                    <p className="text-slate-500 mt-1">Team collaboration and case notes</p>
-                </div>
-            </div>
+            <PagesTopBar
+                title="Case Notes & Collaboration"
+                subtitle="Team collaboration and case notes"
+            />
 
             <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm p-6 mb-6">
                 <div className="flex items-center gap-4">

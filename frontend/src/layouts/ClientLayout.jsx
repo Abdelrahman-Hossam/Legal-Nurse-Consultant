@@ -11,7 +11,7 @@ const ClientLayout = ({ children }) => {
             <ClientNavbar sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen} />
             <div className="flex">
                 <ClientSidebar sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen} />
-                <main className="flex-1 pt-16 md:pl-64" style={{ marginLeft: '-35vh', marginRight: '5vh', marginTop: '3vh' }}>
+                <main className="flex-1 pt-16 md:pl-64" style={{ marginLeft: '20px', marginRight: '5vh', marginTop: '3vh' }}>
                     {children}
                 </main>
             </div>

@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import reportService from '../../../services/report.service';
+import PagesTopBar, { pagesTopBarPrimaryClass } from '../../../shared/components/PagesTopBar';
 import CustomReportBuilderModal from '../components/CustomReportBuilderModal';
 
 const ReportsPage = () => {
@@ -102,22 +103,22 @@ const ReportsPage = () => {
 
     return (
         <div className="max-w-7xl mx-auto">
-            {/* Header & Main CTA */}
-            <div className="flex flex-col md:flex-row md:items-end justify-between mb-10 gap-6">
-                <div>
-                    <h1 className="text-3xl font-bold text-slate-900 dark:text-white mb-2">Report Generation Center</h1>
-                    <p className="text-slate-500 dark:text-slate-400 max-w-2xl">
-                        Select a standardized template to begin your medical-legal analysis or create a custom structured report.
-                    </p>
-                </div>
+            <PagesTopBar
+                marginBottom={false}
+                className="mb-10"
+                title="Report Generation Center"
+                subtitle="Select a standardized template to begin your medical-legal analysis or create a custom structured report."
+                titleSize="lg"
+            >
                 <button
+                    type="button"
                     onClick={() => setShowCustomReportModal(true)}
-                    className="inline-flex items-center justify-center gap-2 bg-[#0891b2] hover:bg-teal-700 text-white px-6 py-3 rounded-xl font-semibold transition-all shadow-lg shadow-[#0891b2]/20 hover:shadow-[#0891b2]/40 group"
+                    className={`${pagesTopBarPrimaryClass} rounded-xl px-6 py-3 group`}
                 >
                     <span className="material-icons transition-transform group-hover:rotate-12">dashboard_customize</span>
                     Custom Report Builder
                 </button>
-            </div>
+            </PagesTopBar>
 
             {/* Report Templates Grid */}
             <section className="mb-12">

@@ -2,9 +2,10 @@ import { Navigate, Route, BrowserRouter as Router, Routes } from 'react-router-d
 import BillingPage from './modules/billing-time-tracking/pages/BillingPage';
 import CaseAnalysis from './modules/case-analysis/pages/CaseAnalysis';
 import NotesPage from './modules/collaboration/pages/NotesPage';
+import CaseDetail from './modules/crm-case-intake/pages/CaseDetail';
 import CasesList from './modules/crm-case-intake/pages/CasesList';
 import ClientsList from './modules/crm-case-intake/pages/ClientsList';
-import CreateCase from './modules/crm-case-intake/pages/CreateCase';
+import CaseForm from './modules/crm-case-intake/components/CaseForm';
 import LawFirmsList from './modules/crm-case-intake/pages/LawFirmsList';
 import DamagesTracking from './modules/damages-tracking/pages/DamagesTracking';
 import ClientBilling from './modules/file-sharing-portal/pages/ClientBilling';
@@ -29,6 +30,7 @@ import Register from './pages/Register';
 import Settings from './pages/Settings';
 import StaffDashboard from './pages/StaffDashboard';
 import UsersManagement from './pages/UsersManagement';
+import NotificationsPage from './pages/NotificationsPage';
 
 // Layouts
 import AdminLayout from './layouts/AdminLayout';
@@ -48,8 +50,8 @@ function App() {
                 <Route path="/" element={<Navigate to="/login" replace />} />
                 <Route path="/dashboard" element={<AdminLayout><Dashboard /></AdminLayout>} />
                 <Route path="/cases" element={<AdminLayout><CasesList /></AdminLayout>} />
-                <Route path="/cases/new" element={<AdminLayout><CreateCase /></AdminLayout>} />
-                <Route path="/cases/:id" element={<AdminLayout><CasesList /></AdminLayout>} />
+                <Route path="/cases/new" element={<AdminLayout><CaseForm /></AdminLayout>} />
+                <Route path="/cases/:id" element={<AdminLayout><CaseDetail /></AdminLayout>} />
                 <Route path="/clients" element={<AdminLayout><ClientsList /></AdminLayout>} />
                 <Route path="/users" element={<AdminLayout><UsersManagement /></AdminLayout>} />
                 <Route path="/medical-records" element={<AdminLayout><MedicalRecordsList /></AdminLayout>} />
@@ -64,10 +66,12 @@ function App() {
                 <Route path="/tasks" element={<AdminLayout><TasksPage /></AdminLayout>} />
                 <Route path="/settings" element={<AdminLayout><PortalSettings /></AdminLayout>} />
                 <Route path="/medline" element={<AdminLayout><MedlineAccess /></AdminLayout>} />
+                <Route path="/notifications" element={<AdminLayout><NotificationsPage /></AdminLayout>} />
                 {/* Staff Routes */}
                 <Route path="/staff-dashboard" element={<StaffLayout><StaffDashboard /></StaffLayout>} />
                 <Route path="/staff/cases" element={<StaffLayout><CasesList /></StaffLayout>} />
-                <Route path="/staff/cases/:id" element={<StaffLayout><CasesList /></StaffLayout>} />
+                <Route path="/staff/cases/new" element={<StaffLayout><CaseForm /></StaffLayout>} />
+                <Route path="/staff/cases/:id" element={<StaffLayout><CaseDetail /></StaffLayout>} />
                 <Route path="/staff/tasks" element={<StaffLayout><TasksPage /></StaffLayout>} />
                 <Route path="/staff/medical-records" element={<StaffLayout><MedicalRecordsList /></StaffLayout>} />
                 <Route path="/staff/case-analysis" element={<StaffLayout><CaseAnalysis /></StaffLayout>} />
@@ -78,6 +82,7 @@ function App() {
                 <Route path="/staff/settings" element={<StaffLayout><Settings /></StaffLayout>} />
                 <Route path="/staff/timeline/:caseId" element={<StaffLayout><TimelineBuilder /></StaffLayout>} />
                 <Route path="/timeline-work" element={<StaffLayout><TimelineWork /></StaffLayout>} />
+                <Route path="/staff/notifications" element={<StaffLayout><NotificationsPage /></StaffLayout>} />
 
                 {/* Client Portal Routes */}
                 <Route path="/client/dashboard" element={<ClientLayout><ClientDashboard /></ClientLayout>} />

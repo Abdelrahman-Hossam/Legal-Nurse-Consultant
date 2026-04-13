@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import userService from '../services/user.service';
+import PagesTopBar, { pagesTopBarPrimaryClass } from '../shared/components/PagesTopBar';
 
 const UsersManagement = () => {
     const [searchQuery, setSearchQuery] = useState('');
@@ -140,20 +141,12 @@ const UsersManagement = () => {
 
     return (
         <div className="max-w-7xl mx-auto">
-            {/* Header */}
-            <div className="flex justify-between items-end mb-8">
-                <div>
-                    <h1 className="text-2xl font-bold text-slate-900 dark:text-white">User Management</h1>
-                    <p className="text-slate-500 mt-1">Manage system users and permissions</p>
-                </div>
-                <button
-                    onClick={() => setShowAddModal(true)}
-                    className="bg-[#0891b2] hover:bg-teal-700 text-white px-5 py-2.5 rounded-lg font-semibold flex items-center gap-2 shadow-sm transition-all transform active:scale-95"
-                >
+            <PagesTopBar title="User Management" subtitle="Manage system users and permissions">
+                <button type="button" onClick={() => setShowAddModal(true)} className={pagesTopBarPrimaryClass}>
                     <span className="material-icons text-sm">person_add</span>
                     Add User
                 </button>
-            </div>
+            </PagesTopBar>
 
             {/* Stats Cards */}
             <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">

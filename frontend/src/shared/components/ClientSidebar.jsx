@@ -75,8 +75,11 @@ const ClientSidebar = ({ sidebarOpen, setSidebarOpen }) => {
             )}
 
             {/* Sidebar */}
-            <aside className={`w-64 bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 h-screen sticky top-0 flex flex-col fixed z-50 transition-transform duration-300 ${sidebarOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'
-                }`}>
+            <aside
+                className={`w-64 bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 flex flex-col fixed top-16 h-[calc(100vh-4rem)] overflow-y-auto z-50 transition-transform duration-300 ${
+                    sidebarOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'
+                }`}
+            >
                 {/* Logo */}
                 <div className="p-6 border-b border-slate-200 dark:border-slate-800">
                     <div className="flex items-center gap-3">

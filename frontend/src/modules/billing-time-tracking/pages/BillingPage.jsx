@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import billingService from '../../../services/billing.service';
 import caseService from '../../../services/case.service';
+import PagesTopBar, { pagesTopBarPrimaryClass, pagesTopBarSecondaryClass } from '../../../shared/components/PagesTopBar';
 import ManualTimeEntryModal from '../components/ManualTimeEntryModal';
 
 const BillingPage = () => {
@@ -194,34 +195,23 @@ const BillingPage = () => {
 
     return (
         <div className="max-w-7xl mx-auto">
-            {/* Header */}
-            <header className="mb-8">
-                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
-                    <div>
-                        <h1 className="text-2xl font-bold text-[#1f3b61] dark:text-white">Billing & Time Tracking</h1>
-                        <p className="text-slate-500 dark:text-slate-400 text-sm">
-                            Track billable hours and manage client invoices securely.
-                        </p>
-                    </div>
-                    <div className="flex items-center gap-3">
-                        <button
-                            onClick={handleExportCSV}
-                            className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 px-4 py-2 rounded-lg text-sm font-medium flex items-center gap-2 hover:bg-slate-50 transition"
-                        >
-                            <span className="material-icons text-sm">download</span> Export CSV
-                        </button>
-                        <button
-                            onClick={() => setShowManualEntryModal(true)}
-                            className="bg-[#1f3b61] text-white px-4 py-2 rounded-lg text-sm font-medium flex items-center gap-2 hover:bg-opacity-90 transition"
-                        >
-                            <span className="material-icons text-sm">add</span> Manual Entry
-                        </button>
-                    </div>
-                </div>
+            <PagesTopBar
+                title="Billing & Time Tracking"
+                subtitle="Track billable hours and manage client invoices securely."
+            >
+                <button type="button" onClick={handleExportCSV} className={pagesTopBarSecondaryClass}>
+                    <span className="material-icons text-sm">download</span>
+                    Export CSV
+                </button>
+                <button type="button" onClick={() => setShowManualEntryModal(true)} className={pagesTopBarPrimaryClass}>
+                    <span className="material-icons text-sm">add</span>
+                    Manual Entry
+                </button>
+            </PagesTopBar>
 
-                {/* Active Timer Widget */}
-                <div className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl p-5 shadow-sm">
-                    <div className="grid grid-cols-1 md:grid-cols-12 gap-6 items-center">
+            {/* Active Timer Widget */}
+            <div className="mb-8 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl p-5 shadow-sm">
+                <div className="grid grid-cols-1 md:grid-cols-12 gap-6 items-center">
                         <div className="md:col-span-4">
                             <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1">
                                 Active Project / Case
@@ -282,9 +272,8 @@ const BillingPage = () => {
                                 <span className="material-icons">more_vert</span>
                             </button>
                         </div>
-                    </div>
                 </div>
-            </header>
+            </div>
 
             <div className="grid grid-cols-1 xl:grid-cols-3 gap-8">
                 {/* Recent Entries Table */}
