@@ -327,6 +327,9 @@ const CaseDetail = () => {
     };
 
     const handleUpload = async (e) => {
+
+
+        
         e.preventDefault();
         if (!uploadData.file) {
             alert('Please select a file to upload');

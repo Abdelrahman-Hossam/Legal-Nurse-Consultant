@@ -1,7 +1,14 @@
 import { useState } from 'react';
 import api from '../../../services/api.service';
 import searchService from '../../../services/search.service';
-import PagesTopBar from '../../../shared/components/PagesTopBar';
+import PagesTopBar, {
+    pagesListPageCanvasClass,
+    pagesListPageHeaderBandClass,
+    pagesListPageMaxInnerClass,
+    pagesTopBarFlushOnCreamClass,
+    pagesTopBarSplitTitle,
+    pagesTopBarWatermarkWord
+} from '../../../shared/components/PagesTopBar';
 
 const SearchPage = () => {
     const [searchQuery, setSearchQuery] = useState('');
@@ -62,11 +69,20 @@ const SearchPage = () => {
     };
 
     return (
-        <div className="max-w-7xl mx-auto">
-            <PagesTopBar
-                title="Medical Record Search"
-                subtitle="Search through OCR-processed medical documents"
-            />
+        <>
+            <div className={pagesListPageCanvasClass}>
+                <div className={pagesListPageMaxInnerClass}>
+                    <div className="relative z-[1]">
+                        <div className={pagesListPageHeaderBandClass}>
+                            <PagesTopBar
+                                eyebrow="Record search"
+                                title={pagesTopBarSplitTitle('Medical', 'Search')}
+                                titleClassName="!m-0 !p-0"
+                                subtitle="Search through OCR-processed medical documents"
+                                className={pagesTopBarFlushOnCreamClass}
+                                watermark={pagesTopBarWatermarkWord('Search')}
+                            />
+                        </div>
 
             {/* Search Form */}
             <form onSubmit={handleSearch} className="bg-white dark:bg-slate-800/50 p-6 rounded-xl border border-slate-200 dark:border-[#0891b2]/10 mb-6">
@@ -171,6 +187,9 @@ const SearchPage = () => {
                     </div>
                 )}
             </div>
+                    </div>
+                </div>
+            </div>
 
             {/* OCR Text Modal */}
             {showOcrModal && (
@@ -218,7 +237,7 @@ const SearchPage = () => {
                     </div>
                 </div>
             )}
-        </div>
+        </>
     );
 };
 

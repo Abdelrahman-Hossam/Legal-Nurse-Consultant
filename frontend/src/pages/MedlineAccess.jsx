@@ -1,6 +1,13 @@
 import { useState } from 'react';
 import { Button } from '../shared/components/Button';
-import PagesTopBar from '../shared/components/PagesTopBar';
+import PagesTopBar, {
+    pagesListPageCanvasClass,
+    pagesListPageHeaderBandClass,
+    pagesListPageMaxInnerClass,
+    pagesTopBarFlushOnCreamClass,
+    pagesTopBarSplitTitle,
+    pagesTopBarWatermarkWord
+} from '../shared/components/PagesTopBar';
 
 const MedlineAccess = () => {
     const [searchQuery, setSearchQuery] = useState('');
@@ -38,11 +45,19 @@ const MedlineAccess = () => {
     };
 
     return (
-        <div className="max-w-7xl mx-auto">
-            <PagesTopBar
-                title="Medline Access"
-                subtitle="Search medical literature and research databases"
-            />
+        <div className={pagesListPageCanvasClass}>
+            <div className={pagesListPageMaxInnerClass}>
+                <div className="relative z-[1]">
+                    <div className={pagesListPageHeaderBandClass}>
+                        <PagesTopBar
+                            eyebrow="Medical encyclopedia"
+                            title={pagesTopBarSplitTitle('Medline', 'Access')}
+                            titleClassName="!m-0 !p-0"
+                            subtitle="Search medical literature and research databases"
+                            className={pagesTopBarFlushOnCreamClass}
+                            watermark={pagesTopBarWatermarkWord('Medline')}
+                        />
+                    </div>
 
             {/* Search Section */}
             <div className="bg-white dark:bg-slate-900 rounded-xl border border-[#d9d4cb] dark:border-slate-800 shadow-sm p-6 mb-6">
@@ -180,6 +195,8 @@ const MedlineAccess = () => {
                     </p>
                 </div>
             )}
+                </div>
+            </div>
         </div>
     );
 };

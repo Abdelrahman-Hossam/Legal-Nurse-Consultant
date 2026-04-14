@@ -1,6 +1,15 @@
 import { useEffect, useState } from 'react';
 import lawFirmService from '../../../services/lawFirm.service';
-import PagesTopBar, { pagesTopBarPrimaryClass } from '../../../shared/components/PagesTopBar';
+import PagesTopBar, {
+    pagesListPageCanvasClass,
+    pagesListPageHeaderBandClass,
+    pagesListPageMaxInnerClass,
+    pagesTopBarFlushOnCreamClass,
+    pagesTopBarPrimaryClass,
+    pagesTopBarSplitTitle,
+    pagesTopBarUiSansClass,
+    pagesTopBarWatermarkWord
+} from '../../../shared/components/PagesTopBar';
 
 const LawFirmsList = () => {
     const [searchTerm, setSearchTerm] = useState('');
@@ -97,18 +106,27 @@ const LawFirmsList = () => {
     };
 
     return (
-        <div className="max-w-7xl mx-auto">
-            <PagesTopBar
-                titleAs="h2"
-                title="Partner Law Firms"
-                subtitle={`Manage ${pagination.total} registered law firms`}
-                titleSize="lg"
-            >
-                <button type="button" onClick={() => setShowCreateModal(true)} className={pagesTopBarPrimaryClass}>
-                    <span className="material-icons text-[20px]">add</span>
-                    Add Law Firm
-                </button>
-            </PagesTopBar>
+        <>
+            <div className={pagesListPageCanvasClass}>
+                <div className={pagesListPageMaxInnerClass}>
+                    <div className="relative z-[1]">
+                        <div className={pagesListPageHeaderBandClass}>
+                            <PagesTopBar
+                                eyebrow="Firms & associates"
+                                title={pagesTopBarSplitTitle('Law', 'Firms')}
+                                titleClassName="!m-0 !p-0"
+                                subtitle={`Manage ${pagination.total} registered law firms`}
+                                className={pagesTopBarFlushOnCreamClass}
+                                watermark={pagesTopBarWatermarkWord('Firms')}
+                            >
+                                <div className={`flex flex-wrap items-center gap-3 ${pagesTopBarUiSansClass}`}>
+                                    <button type="button" onClick={() => setShowCreateModal(true)} className={pagesTopBarPrimaryClass}>
+                                        <span className="material-icons text-[20px]">add</span>
+                                        Add Law Firm
+                                    </button>
+                                </div>
+                            </PagesTopBar>
+                        </div>
 
             {/* Search */}
             <section className="mb-6">
@@ -207,6 +225,9 @@ const LawFirmsList = () => {
                     </div>
                 </div>
             </main>
+                    </div>
+                </div>
+            </div>
 
             {/* View Law Firm Modal */}
             {showViewModal && selectedFirm && (
@@ -575,7 +596,7 @@ const LawFirmsList = () => {
                     </div>
                 </div>
             )}
-        </div>
+        </>
     );
 };
 

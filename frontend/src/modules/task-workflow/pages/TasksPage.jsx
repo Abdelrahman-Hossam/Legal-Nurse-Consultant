@@ -1,7 +1,16 @@
 import { useEffect, useState } from 'react';
 import { useLocation } from 'react-router-dom';
 import taskService from '../../../services/task.service';
-import PagesTopBar, { pagesTopBarPrimaryClass } from '../../../shared/components/PagesTopBar';
+import PagesTopBar, {
+    pagesListPageCanvasClass,
+    pagesListPageHeaderBandClass,
+    pagesListPageMaxInnerClass,
+    pagesTopBarFlushOnCreamClass,
+    pagesTopBarPrimaryClass,
+    pagesTopBarSplitTitle,
+    pagesTopBarUiSansClass,
+    pagesTopBarWatermarkWord
+} from '../../../shared/components/PagesTopBar';
 import CreateTaskModal from '../components/CreateTaskModal';
 
 const TasksPage = () => {
@@ -142,11 +151,20 @@ const TasksPage = () => {
     });
 
     return (
-        <div className="max-w-[1600px] mx-auto">
-            <PagesTopBar
-                title="Task Manager"
-                subtitle="Track deadlines, priorities, and work across cases."
-            />
+        <>
+            <div className={pagesListPageCanvasClass}>
+                <div className={pagesListPageMaxInnerClass}>
+                    <div className="relative z-[1]">
+                        <div className={pagesListPageHeaderBandClass}>
+                            <PagesTopBar
+                                eyebrow="Tasks management"
+                                title={pagesTopBarSplitTitle('Task', 'Manager')}
+                                titleClassName="!m-0 !p-0"
+                                subtitle="Track deadlines, priorities, and work across cases."
+                                className={pagesTopBarFlushOnCreamClass}
+                                watermark={pagesTopBarWatermarkWord('Tasks')}
+                            />
+                        </div>
 
             {/* Dashboard Summary */}
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
@@ -169,7 +187,7 @@ const TasksPage = () => {
             </div>
 
             {/* Toolbar */}
-            <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 mb-6">
+            <div className={`flex flex-col lg:flex-row lg:items-center justify-between gap-4 mb-6 ${pagesTopBarUiSansClass}`}>
                 <div className="flex flex-wrap items-center gap-2">
                     <button
                         type="button"
@@ -339,6 +357,9 @@ const TasksPage = () => {
                     </div>
                 </div>
             </div>
+                    </div>
+                </div>
+            </div>
 
             {/* Create Task Modal */}
             <CreateTaskModal
@@ -346,7 +367,7 @@ const TasksPage = () => {
                 onClose={() => setIsCreateModalOpen(false)}
                 onTaskCreated={handleCreateTask}
             />
-        </div>
+        </>
     );
 };
 

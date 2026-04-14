@@ -1,6 +1,15 @@
 import { useEffect, useState } from 'react';
 import reportService from '../../../services/report.service';
-import PagesTopBar, { pagesTopBarPrimaryClass } from '../../../shared/components/PagesTopBar';
+import PagesTopBar, {
+    pagesListPageCanvasClass,
+    pagesListPageHeaderBandClass,
+    pagesListPageMaxInnerClass,
+    pagesTopBarFlushOnCreamClass,
+    pagesTopBarPrimaryClass,
+    pagesTopBarSplitTitle,
+    pagesTopBarUiSansClass,
+    pagesTopBarWatermarkWord
+} from '../../../shared/components/PagesTopBar';
 import CustomReportBuilderModal from '../components/CustomReportBuilderModal';
 
 const ReportsPage = () => {
@@ -98,27 +107,39 @@ const ReportsPage = () => {
     };
 
     if (loading) {
-        return <div className="flex justify-center items-center h-64">Loading...</div>;
+        return (
+            <div className={pagesListPageCanvasClass}>
+                <div className="flex justify-center items-center h-64">Loading...</div>
+            </div>
+        );
     }
 
     return (
-        <div className="max-w-7xl mx-auto">
-            <PagesTopBar
-                marginBottom={false}
-                className="mb-10"
-                title="Report Generation Center"
-                subtitle="Select a standardized template to begin your medical-legal analysis or create a custom structured report."
-                titleSize="lg"
-            >
-                <button
-                    type="button"
-                    onClick={() => setShowCustomReportModal(true)}
-                    className={`${pagesTopBarPrimaryClass} rounded-xl px-6 py-3 group`}
-                >
-                    <span className="material-icons transition-transform group-hover:rotate-12">dashboard_customize</span>
-                    Custom Report Builder
-                </button>
-            </PagesTopBar>
+        <>
+            <div className={pagesListPageCanvasClass}>
+                <div className={pagesListPageMaxInnerClass}>
+                    <div className="relative z-[1]">
+                        <div className={pagesListPageHeaderBandClass}>
+                        <PagesTopBar
+                            eyebrow="Report management"
+                            title={pagesTopBarSplitTitle('Report', 'Center')}
+                            titleClassName="!m-0 !p-0"
+                            subtitle="Select a standardized template to begin your medical-legal analysis or create a custom structured report."
+                            className={pagesTopBarFlushOnCreamClass}
+                            watermark={pagesTopBarWatermarkWord('Reports')}
+                        >
+                            <div className={`flex flex-wrap items-center gap-3 ${pagesTopBarUiSansClass}`}>
+                                <button
+                                    type="button"
+                                    onClick={() => setShowCustomReportModal(true)}
+                                    className={`${pagesTopBarPrimaryClass} rounded-xl px-6 py-3 group`}
+                                >
+                                    <span className="material-icons transition-transform group-hover:rotate-12">dashboard_customize</span>
+                                    Custom Report Builder
+                                </button>
+                            </div>
+                        </PagesTopBar>
+                        </div>
 
             {/* Report Templates Grid */}
             <section className="mb-12">
@@ -253,8 +274,9 @@ const ReportsPage = () => {
                     )}
                 </div>
             </section>
-
-
+                    </div>
+                </div>
+            </div>
 
             {/* Custom Report Builder Modal */}
             <CustomReportBuilderModal
@@ -262,7 +284,7 @@ const ReportsPage = () => {
                 onClose={() => setShowCustomReportModal(false)}
                 onReportGenerated={fetchData}
             />
-        </div>
+        </>
     );
 };
 

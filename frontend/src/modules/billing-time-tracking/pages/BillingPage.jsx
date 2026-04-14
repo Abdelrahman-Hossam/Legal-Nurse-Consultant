@@ -1,7 +1,17 @@
 import { useEffect, useState } from 'react';
 import billingService from '../../../services/billing.service';
 import caseService from '../../../services/case.service';
-import PagesTopBar, { pagesTopBarPrimaryClass, pagesTopBarSecondaryClass } from '../../../shared/components/PagesTopBar';
+import PagesTopBar, {
+    pagesListPageCanvasClass,
+    pagesListPageHeaderBandClass,
+    pagesListPageMaxInnerClass,
+    pagesTopBarFlushOnCreamClass,
+    pagesTopBarPrimaryClass,
+    pagesTopBarSecondaryClass,
+    pagesTopBarSplitTitle,
+    pagesTopBarUiSansClass,
+    pagesTopBarWatermarkWord
+} from '../../../shared/components/PagesTopBar';
 import ManualTimeEntryModal from '../components/ManualTimeEntryModal';
 
 const BillingPage = () => {
@@ -194,20 +204,31 @@ const BillingPage = () => {
     const displayInvoices = invoices.length > 0 ? invoices : mockInvoices;
 
     return (
-        <div className="max-w-7xl mx-auto">
-            <PagesTopBar
-                title="Billing & Time Tracking"
-                subtitle="Track billable hours and manage client invoices securely."
-            >
-                <button type="button" onClick={handleExportCSV} className={pagesTopBarSecondaryClass}>
-                    <span className="material-icons text-sm">download</span>
-                    Export CSV
-                </button>
-                <button type="button" onClick={() => setShowManualEntryModal(true)} className={pagesTopBarPrimaryClass}>
-                    <span className="material-icons text-sm">add</span>
-                    Manual Entry
-                </button>
-            </PagesTopBar>
+        <>
+            <div className={pagesListPageCanvasClass}>
+                <div className={pagesListPageMaxInnerClass}>
+                    <div className="relative z-[1]">
+                        <div className={pagesListPageHeaderBandClass}>
+                            <PagesTopBar
+                                eyebrow="Billing & invoicing"
+                                title={pagesTopBarSplitTitle('Billing', 'Invoices')}
+                                titleClassName="!m-0 !p-0"
+                                subtitle="Track billable hours and manage client invoices securely."
+                                className={pagesTopBarFlushOnCreamClass}
+                                watermark={pagesTopBarWatermarkWord('Billing')}
+                            >
+                                <div className={`flex flex-wrap items-center gap-3 ${pagesTopBarUiSansClass}`}>
+                                    <button type="button" onClick={handleExportCSV} className={pagesTopBarSecondaryClass}>
+                                        <span className="material-icons text-sm">download</span>
+                                        Export CSV
+                                    </button>
+                                    <button type="button" onClick={() => setShowManualEntryModal(true)} className={pagesTopBarPrimaryClass}>
+                                        <span className="material-icons text-sm">add</span>
+                                        Manual Entry
+                                    </button>
+                                </div>
+                            </PagesTopBar>
+                        </div>
 
             {/* Active Timer Widget */}
             <div className="mb-8 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl p-5 shadow-sm">
@@ -468,6 +489,9 @@ const BillingPage = () => {
                     </div>
                 </div>
             </div>
+                    </div>
+                </div>
+            </div>
 
             {/* Floating Action for Mobile */}
             <div className="lg:hidden fixed bottom-6 right-6">
@@ -482,7 +506,7 @@ const BillingPage = () => {
                 onClose={() => setShowManualEntryModal(false)}
                 onEntryCreated={fetchData}
             />
-        </div>
+        </>
     );
 };
 

@@ -1,6 +1,15 @@
 import { useEffect, useState } from 'react';
 import userService from '../services/user.service';
-import PagesTopBar, { pagesTopBarPrimaryClass } from '../shared/components/PagesTopBar';
+import PagesTopBar, {
+    pagesListPageCanvasClass,
+    pagesListPageHeaderBandClass,
+    pagesListPageMaxInnerClass,
+    pagesTopBarFlushOnCreamClass,
+    pagesTopBarPrimaryClass,
+    pagesTopBarSplitTitle,
+    pagesTopBarUiSansClass,
+    pagesTopBarWatermarkWord
+} from '../shared/components/PagesTopBar';
 
 const UsersManagement = () => {
     const [searchQuery, setSearchQuery] = useState('');
@@ -140,13 +149,27 @@ const UsersManagement = () => {
     };
 
     return (
-        <div className="max-w-7xl mx-auto">
-            <PagesTopBar title="User Management" subtitle="Manage system users and permissions">
-                <button type="button" onClick={() => setShowAddModal(true)} className={pagesTopBarPrimaryClass}>
-                    <span className="material-icons text-sm">person_add</span>
-                    Add User
-                </button>
-            </PagesTopBar>
+        <>
+            <div className={pagesListPageCanvasClass}>
+                <div className={pagesListPageMaxInnerClass}>
+                    <div className="relative z-[1]">
+                        <div className={pagesListPageHeaderBandClass}>
+                        <PagesTopBar
+                            eyebrow="Users"
+                            title={pagesTopBarSplitTitle('User', 'Management')}
+                            titleClassName="!m-0 !p-0"
+                            subtitle="Manage system users and permissions"
+                            className={pagesTopBarFlushOnCreamClass}
+                            watermark={pagesTopBarWatermarkWord('Team')}
+                        >
+                            <div className={`flex flex-wrap items-center gap-3 ${pagesTopBarUiSansClass}`}>
+                                <button type="button" onClick={() => setShowAddModal(true)} className={pagesTopBarPrimaryClass}>
+                                    <span className="material-icons text-sm">person_add</span>
+                                    Add User
+                                </button>
+                            </div>
+                        </PagesTopBar>
+                        </div>
 
             {/* Stats Cards */}
             <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
@@ -351,6 +374,9 @@ const UsersManagement = () => {
                     </div>
                 </div>
             </div>
+                    </div>
+                </div>
+            </div>
 
             {/* Add User Modal */}
             {showAddModal && (
@@ -541,7 +567,7 @@ const UsersManagement = () => {
                     </div>
                 </div>
             )}
-        </div>
+        </>
     );
 };
 

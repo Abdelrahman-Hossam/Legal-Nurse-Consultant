@@ -1,7 +1,17 @@
 import { useEffect, useState } from 'react';
 import caseService from '../../../services/case.service';
 import medicalRecordService from '../../../services/medicalRecord.service';
-import PagesTopBar, { pagesTopBarPrimaryClass, pagesTopBarSecondaryClass } from '../../../shared/components/PagesTopBar';
+import PagesTopBar, {
+    pagesListPageCanvasClass,
+    pagesListPageHeaderBandClass,
+    pagesListPageMaxInnerClass,
+    pagesTopBarFlushOnCreamClass,
+    pagesTopBarPrimaryClass,
+    pagesTopBarSecondaryClass,
+    pagesTopBarSplitTitle,
+    pagesTopBarUiSansClass,
+    pagesTopBarWatermarkWord
+} from '../../../shared/components/PagesTopBar';
 
 const MedicalRecordsList = () => {
     const [searchQuery, setSearchQuery] = useState('');
@@ -228,20 +238,31 @@ const MedicalRecordsList = () => {
     };
 
     return (
-        <div className="max-w-7xl mx-auto">
-            <PagesTopBar
-                title="Medical Records"
-                subtitle="Manage and search medical documentation with OCR capabilities"
-            >
-                <button type="button" className={pagesTopBarSecondaryClass}>
-                    <span className="material-icons text-sm">filter_list</span>
-                    Filters
-                </button>
-                <button type="button" onClick={() => setShowUploadModal(true)} className={pagesTopBarPrimaryClass}>
-                    <span className="material-icons text-sm">upload_file</span>
-                    Upload Records
-                </button>
-            </PagesTopBar>
+        <>
+            <div className={pagesListPageCanvasClass}>
+                <div className={pagesListPageMaxInnerClass}>
+                    <div className="relative z-[1]">
+                        <div className={pagesListPageHeaderBandClass}>
+                            <PagesTopBar
+                                eyebrow="Records management"
+                                title={pagesTopBarSplitTitle('Medical', 'Records')}
+                                titleClassName="!m-0 !p-0"
+                                subtitle="Manage and search medical documentation with OCR capabilities"
+                                className={pagesTopBarFlushOnCreamClass}
+                                watermark={pagesTopBarWatermarkWord('Records')}
+                            >
+                                <div className={`flex flex-wrap items-center gap-3 ${pagesTopBarUiSansClass}`}>
+                                    <button type="button" className={pagesTopBarSecondaryClass}>
+                                        <span className="material-icons text-sm">filter_list</span>
+                                        Filters
+                                    </button>
+                                    <button type="button" onClick={() => setShowUploadModal(true)} className={pagesTopBarPrimaryClass}>
+                                        <span className="material-icons text-sm">upload_file</span>
+                                        Upload Records
+                                    </button>
+                                </div>
+                            </PagesTopBar>
+                        </div>
 
             {/* Search & Filter Bar */}
             <div className="bg-white dark:bg-slate-800/50 p-4 rounded-xl border border-slate-200 dark:border-[#0891b2]/10 mb-6 flex flex-wrap items-center gap-4">
@@ -418,6 +439,9 @@ const MedicalRecordsList = () => {
                             className="w-8 h-8 flex items-center justify-center rounded-lg border border-slate-200 text-slate-400 hover:bg-white transition-all disabled:opacity-50">
                             <span className="material-icons text-sm">chevron_right</span>
                         </button>
+                    </div>
+                </div>
+            </div>
                     </div>
                 </div>
             </div>
@@ -675,7 +699,7 @@ const MedicalRecordsList = () => {
                     </div>
                 </div>
             )}
-        </div>
+        </>
     );
 };
 

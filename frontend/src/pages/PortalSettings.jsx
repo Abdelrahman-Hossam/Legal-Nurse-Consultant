@@ -1,6 +1,13 @@
 import { useState } from 'react';
 import { Button } from '../shared/components/Button';
-import PagesTopBar from '../shared/components/PagesTopBar';
+import PagesTopBar, {
+    pagesListPageCanvasClass,
+    pagesListPageHeaderBandClass,
+    pagesListPageMaxInnerClass,
+    pagesTopBarFlushOnCreamClass,
+    pagesTopBarSplitTitle,
+    pagesTopBarWatermarkWord
+} from '../shared/components/PagesTopBar';
 
 const PortalSettings = () => {
     const [activeTab, setActiveTab] = useState('general');
@@ -36,13 +43,21 @@ const PortalSettings = () => {
     ];
 
     return (
-        <div className="max-w-7xl mx-auto">
-            <PagesTopBar
-                title="Portal Settings"
-                subtitle="Configure system-wide settings and preferences"
-            />
+        <div className={pagesListPageCanvasClass}>
+            <div className={pagesListPageMaxInnerClass}>
+                <div className="relative z-[1]">
+                    <div className={pagesListPageHeaderBandClass}>
+                        <PagesTopBar
+                            eyebrow="Portal settings"
+                            title={pagesTopBarSplitTitle('Portal', 'Settings')}
+                            titleClassName="!m-0 !p-0"
+                            subtitle="Configure system-wide settings and preferences"
+                            className={pagesTopBarFlushOnCreamClass}
+                            watermark={pagesTopBarWatermarkWord('Portal')}
+                        />
+                    </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+                    <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
                 {/* Sidebar Tabs */}
                 <div className="lg:col-span-1">
                     <div className="bg-white dark:bg-slate-900 rounded-xl border border-[#d9d4cb] dark:border-slate-800 shadow-sm p-4">
@@ -334,6 +349,8 @@ const PortalSettings = () => {
                                 Save Changes
                             </Button>
                         </div>
+                    </div>
+                </div>
                     </div>
                 </div>
             </div>

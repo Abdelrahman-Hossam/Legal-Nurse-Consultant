@@ -2,7 +2,16 @@ import { useEffect, useState } from 'react';
 import caseService from '../../../services/case.service';
 import caseAnalysisService from '../../../services/caseAnalysis.service';
 import medicalRecordService from '../../../services/medicalRecord.service';
-import PagesTopBar, { pagesTopBarPrimaryClass } from '../../../shared/components/PagesTopBar';
+import PagesTopBar, {
+    pagesListPageCanvasClass,
+    pagesListPageHeaderBandClass,
+    pagesListPageMaxInnerClass,
+    pagesTopBarFlushOnCreamClass,
+    pagesTopBarPrimaryClass,
+    pagesTopBarSplitTitle,
+    pagesTopBarUiSansClass,
+    pagesTopBarWatermarkWord
+} from '../../../shared/components/PagesTopBar';
 
 const CaseAnalysis = () => {
     const [selectedCase, setSelectedCase] = useState('');
@@ -156,16 +165,27 @@ const CaseAnalysis = () => {
     };
 
     return (
-        <div className="max-w-7xl mx-auto">
-            <PagesTopBar
-                title="Case Analysis"
-                subtitle="Analyze standards of care and identify deviations"
-            >
-                <button type="button" onClick={() => setShowAddModal(true)} className={pagesTopBarPrimaryClass}>
-                    <span className="material-icons text-sm">add</span>
-                    Add Finding
-                </button>
-            </PagesTopBar>
+        <>
+            <div className={pagesListPageCanvasClass}>
+                <div className={pagesListPageMaxInnerClass}>
+                    <div className="relative z-[1]">
+                        <div className={pagesListPageHeaderBandClass}>
+                            <PagesTopBar
+                                eyebrow="Analysis"
+                                title={pagesTopBarSplitTitle('Case', 'Analysis')}
+                                titleClassName="!m-0 !p-0"
+                                subtitle="Analyze standards of care and identify deviations"
+                                className={pagesTopBarFlushOnCreamClass}
+                                watermark={pagesTopBarWatermarkWord('Analysis')}
+                            >
+                                <div className={`flex flex-wrap items-center gap-3 ${pagesTopBarUiSansClass}`}>
+                                    <button type="button" onClick={() => setShowAddModal(true)} className={pagesTopBarPrimaryClass}>
+                                        <span className="material-icons text-sm">add</span>
+                                        Add Finding
+                                    </button>
+                                </div>
+                            </PagesTopBar>
+                        </div>
 
             {/* Case Selector */}
             <div className="bg-white dark:bg-slate-900 rounded-xl border-2 border-slate-200 dark:border-slate-700 shadow-md p-6 mb-6">
@@ -337,6 +357,9 @@ const CaseAnalysis = () => {
                         )}
                     </div>
                 )}
+            </div>
+                    </div>
+                </div>
             </div>
 
             {/* Add Finding Modal */}
@@ -712,7 +735,7 @@ const CaseAnalysis = () => {
                     </div>
                 </div>
             )}
-        </div>
+        </>
     );
 };
 

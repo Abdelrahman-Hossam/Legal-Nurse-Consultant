@@ -1,5 +1,12 @@
 import { useEffect, useState } from 'react';
-import PagesTopBar from '../../../shared/components/PagesTopBar';
+import PagesTopBar, {
+    pagesListPageCanvasClass,
+    pagesListPageHeaderBandClass,
+    pagesListPageMaxInnerClass,
+    pagesTopBarFlushOnCreamClass,
+    pagesTopBarSplitTitle,
+    pagesTopBarWatermarkWord
+} from '../../../shared/components/PagesTopBar';
 import caseService from '../../../services/case.service';
 import noteService from '../../../services/note.service';
 
@@ -119,11 +126,19 @@ const NotesPage = () => {
     };
 
     return (
-        <div className="max-w-7xl mx-auto">
-            <PagesTopBar
-                title="Case Notes & Collaboration"
-                subtitle="Team collaboration and case notes"
-            />
+        <div className={pagesListPageCanvasClass}>
+            <div className={pagesListPageMaxInnerClass}>
+                <div className="relative z-[1]">
+                    <div className={pagesListPageHeaderBandClass}>
+                        <PagesTopBar
+                            eyebrow="Notes summary"
+                            title={pagesTopBarSplitTitle('Notes', 'Collaboration')}
+                            titleClassName="!m-0 !p-0"
+                            subtitle="Team collaboration and case notes"
+                            className={pagesTopBarFlushOnCreamClass}
+                            watermark={pagesTopBarWatermarkWord('Notes')}
+                        />
+                    </div>
 
             <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm p-6 mb-6">
                 <div className="flex items-center gap-4">
@@ -324,7 +339,9 @@ const NotesPage = () => {
                     )}
                 </div>
             </div>
-        </div >
+                </div>
+            </div>
+        </div>
     );
 };
 
