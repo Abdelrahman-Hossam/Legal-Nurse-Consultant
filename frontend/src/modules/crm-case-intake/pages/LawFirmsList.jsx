@@ -215,7 +215,7 @@ const LawFirmsList = () => {
                             className="px-4 py-2 bg-white border rounded-lg text-sm font-medium hover:bg-slate-50 disabled:opacity-50">
                             Previous
                         </button>
-                        <button className="px-4 py-2 bg-[#1f3b61] text-white rounded-lg text-sm font-medium">{pagination.page}</button>
+                        <button className="px-4 py-2 bg-[#801829] text-white rounded-lg text-sm font-medium">{pagination.page}</button>
                         <button
                             onClick={() => setPagination({ ...pagination, page: pagination.page + 1 })}
                             disabled={pagination.page >= pagination.pages}

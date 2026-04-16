@@ -29,6 +29,11 @@ const caseSchema = new mongoose.Schema({
         type: mongoose.Schema.Types.ObjectId,
         ref: 'User'
     },
+    /** User (admin/attorney) who last set assignedConsultant — used for acknowledge notifications */
+    assignedBy: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User'
+    },
     status: {
         type: String,
         enum: ['intake', 'review', 'active', 'pending', 'closed', 'archived'],

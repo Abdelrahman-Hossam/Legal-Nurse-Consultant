@@ -25,7 +25,13 @@ const Navbar = ({ sidebarOpen, setSidebarOpen }) => {
     // Poll for new notifications every 30 seconds
     const interval = setInterval(fetchNotifications, 30000);
 
-    return () => clearInterval(interval);
+    const refresh = () => fetchNotifications();
+    window.addEventListener("lnc:notifications", refresh);
+
+    return () => {
+      clearInterval(interval);
+      window.removeEventListener("lnc:notifications", refresh);
+    };
   }, []);
 
   useEffect(() => {
@@ -137,7 +143,8 @@ const Navbar = ({ sidebarOpen, setSidebarOpen }) => {
     const roleMap = {
       admin: "Admin",
       attorney: "Attorney",
-      "legal-nurse": "Legal Nurse Consultant",
+      consultant: "Consultant",
+      "legal-nurse": "Consultant",
       staff: "Staff",
       client: "Client",
     };

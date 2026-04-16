@@ -54,8 +54,10 @@ const UsersManagement = () => {
             const total = response.data.pagination?.total || 0;
             const active = response.data.users?.filter(u => u.status === 'active').length || 0;
             const admins = response.data.users?.filter(u => u.role === 'admin').length || 0;
-            const nurses = response.data.users?.filter(u => u.role === 'legal-nurse').length || 0;
-            setStats({ total, active, admins, nurses });
+            const consultants =
+                response.data.users?.filter((u) => u.role === 'consultant' || u.role === 'legal-nurse').length ||
+                0;
+            setStats({ total, active, admins, nurses: consultants });
         } catch (error) {
             console.error('Error fetching users:', error);
         } finally {
@@ -116,7 +118,7 @@ const UsersManagement = () => {
         setFormData({
             fullName: user.fullName,
             email: user.email,
-            role: user.role,
+            role: user.role === 'legal-nurse' ? 'consultant' : user.role,
             password: '',
             status: user.status
         });
@@ -134,12 +136,20 @@ const UsersManagement = () => {
 
     const getRoleBadgeColor = (role) => {
         const colors = {
-            'Admin': 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400',
-            'Attorney': 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400',
-            'Legal Nurse': 'bg-teal-100 text-teal-700 dark:bg-teal-900/30 dark:text-teal-400',
-            'Client': 'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-400'
+            admin: 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400',
+            attorney: 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400',
+            consultant: 'bg-teal-100 text-teal-700 dark:bg-teal-900/30 dark:text-teal-400',
+            client: 'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-400',
+            'legal-nurse': 'bg-teal-100 text-teal-700 dark:bg-teal-900/30 dark:text-teal-400'
         };
-        return colors[role] || colors['Client'];
+        return colors[role] || colors.client;
+    };
+
+    const formatRoleLabel = (role) => {
+        if (role === 'legal-nurse') return 'Consultant';
+        if (role === 'consultant') return 'Consultant';
+        if (!role) return '—';
+        return role.charAt(0).toUpperCase() + role.slice(1);
     };
 
     const getStatusColor = (status) => {
@@ -213,7 +223,7 @@ const UsersManagement = () => {
                         </div>
                         <div>
                             <p className="text-2xl font-bold">{stats.nurses}</p>
-                            <p className="text-xs text-slate-500 uppercase font-bold">Legal Nurses</p>
+                            <p className="text-xs text-slate-500 uppercase font-bold">Consultants</p>
                         </div>
                     </div>
                 </div>
@@ -241,7 +251,7 @@ const UsersManagement = () => {
                             <option value="all">All Roles</option>
                             <option value="admin">Admin</option>
                             <option value="attorney">Attorney</option>
-                            <option value="nurse">Legal Nurse</option>
+                            <option value="consultant">Consultant</option>
                             <option value="client">Client</option>
                         </select>
                         <select
@@ -300,7 +310,7 @@ const UsersManagement = () => {
                                         <td className="px-6 py-4 text-sm text-slate-600 dark:text-slate-400">{user.email}</td>
                                         <td className="px-6 py-4">
                                             <span className={`px-2 py-1 rounded-full text-xs font-bold whitespace-nowrap ${getRoleBadgeColor(user.role)}`}>
-                                                {user.role === 'legal-nurse' ? 'Legal Nurse' : user.role.charAt(0).toUpperCase() + user.role.slice(1)}
+                                                {formatRoleLabel(user.role)}
                                             </span>
                                         </td>
                                         <td className="px-6 py-4">
@@ -433,7 +443,7 @@ const UsersManagement = () => {
                                     <option value="">Select role</option>
                                     <option value="admin">Admin</option>
                                     <option value="attorney">Attorney</option>
-                                    <option value="legal-nurse">Legal Nurse</option>
+                                    <option value="consultant">Consultant</option>
                                     <option value="client">Client</option>
                                 </select>
                             </div>
@@ -499,7 +509,7 @@ const UsersManagement = () => {
                                 >
                                     <option value="admin">Admin</option>
                                     <option value="attorney">Attorney</option>
-                                    <option value="legal-nurse">Legal Nurse</option>
+                                    <option value="consultant">Consultant</option>
                                     <option value="client">Client</option>
                                 </select>
                             </div>

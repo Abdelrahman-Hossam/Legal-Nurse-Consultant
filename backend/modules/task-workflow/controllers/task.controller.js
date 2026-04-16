@@ -1,6 +1,7 @@
 const Task = require('../../../models/Task.model');
 const Case = require('../../../models/Case.model');
 const User = require('../../../models/User.model');
+const notificationService = require('../../notifications/services/notification.service');
 
 // Get all tasks with filters
 exports.getAllTasks = async (req, res, next) => {
@@ -123,6 +124,20 @@ exports.createTask = async (req, res, next) => {
         await task.populate('case', 'title caseNumber');
         await task.populate('assignedTo', 'name email');
         await task.populate('assignedBy', 'name email');
+
+        if (assignedTo.toString() !== req.user._id.toString()) {
+            const assignee = await User.findById(assignedTo).select('role').lean();
+            const taskPath = assignee?.role === 'consultant' ? '/staff/tasks' : '/tasks';
+            await notificationService.createNotification({
+                user: assignedTo,
+                title: 'New task assigned',
+                message: `${title} — case ${caseExists.caseNumber || caseExists.caseName || ''}`,
+                type: 'task',
+                link: taskPath,
+                priority: 'medium',
+                metadata: { taskId: task._id.toString(), caseId: caseId }
+            });
+        }
 
         res.status(201).json(task);
     } catch (error) {

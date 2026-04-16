@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react';
 import { Link, useLocation, useParams } from 'react-router-dom';
+import authService from '../../../services/auth.service';
 import caseService from '../../../services/case.service';
+import userService from '../../../services/user.service';
 import caseAnalysisService from '../../../services/caseAnalysis.service';
 import medicalRecordService from '../../../services/medicalRecord.service';
 import noteService from '../../../services/note.service';
@@ -48,6 +50,14 @@ const CaseDetail = () => {
         notes: ''
     });
     const [uploading, setUploading] = useState(false);
+
+    // Assign consultant (admin / attorney)
+    const [showAssignModal, setShowAssignModal] = useState(false);
+    const [consultantsList, setConsultantsList] = useState([]);
+    const [loadingConsultants, setLoadingConsultants] = useState(false);
+    const [assigningConsultantId, setAssigningConsultantId] = useState(null);
+    const [statusSaving, setStatusSaving] = useState(false);
+    const [ackLoading, setAckLoading] = useState(false);
 
     // Task Modal
     const [showTaskModal, setShowTaskModal] = useState(false);
@@ -210,6 +220,69 @@ const CaseDetail = () => {
             alert('Failed to load case details: ' + error.message);
         } finally {
             setLoading(false);
+        }
+    };
+
+    const currentUser = authService.getUser();
+    const canAssignConsultant =
+        currentUser && (currentUser.role === 'admin' || currentUser.role === 'attorney');
+
+    const openAssignModal = async () => {
+        setShowAssignModal(true);
+        setLoadingConsultants(true);
+        try {
+            const res = await userService.getAllUsers({ role: 'consultant', limit: 200 });
+            setConsultantsList(res.data?.users || []);
+        } catch (e) {
+            console.error(e);
+            alert('Could not load consultants');
+            setConsultantsList([]);
+        } finally {
+            setLoadingConsultants(false);
+        }
+    };
+
+    const handleAssignConsultant = async (consultantUserId) => {
+        if (!id) return;
+        setAssigningConsultantId(consultantUserId);
+        try {
+            await caseService.updateCase(id, { assignedConsultant: consultantUserId });
+            await fetchCaseDetails();
+            setShowAssignModal(false);
+            window.dispatchEvent(new Event('lnc:notifications'));
+        } catch (e) {
+            console.error(e);
+            alert(e.response?.data?.message || 'Failed to assign consultant');
+        } finally {
+            setAssigningConsultantId(null);
+        }
+    };
+
+    const handleStatusChange = async (e) => {
+        const v = e.target.value;
+        if (!id || !caseData || v === caseData.status) return;
+        try {
+            setStatusSaving(true);
+            await caseService.updateCase(id, { status: v });
+            await fetchCaseDetails();
+        } catch (err) {
+            alert(err.response?.data?.message || 'Failed to update status');
+        } finally {
+            setStatusSaving(false);
+        }
+    };
+
+    const handleAcknowledge = async () => {
+        if (!id) return;
+        try {
+            setAckLoading(true);
+            await caseService.acknowledgeCase(id);
+            await fetchCaseDetails();
+            window.dispatchEvent(new Event('lnc:notifications'));
+        } catch (err) {
+            alert(err.response?.data?.message || 'Failed to acknowledge case');
+        } finally {
+            setAckLoading(false);
         }
     };
 
@@ -411,6 +484,7 @@ const CaseDetail = () => {
             alert('Task created successfully!');
             fetchTasks();
             fetchCaseDetails();
+            window.dispatchEvent(new Event('lnc:notifications'));
         } catch (error) {
             console.error('Error creating task:', error);
             throw error;
@@ -656,7 +730,7 @@ const CaseDetail = () => {
         return (
             <div className="flex items-center justify-center h-64">
                 <div className="text-center">
-                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#0891b2] mx-auto"></div>
+                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#801829] mx-auto"></div>
                     <p className="mt-4 text-slate-500">Loading case details...</p>
                 </div>
             </div>
@@ -670,6 +744,28 @@ const CaseDetail = () => {
             </div>
         );
     }
+
+    const userId = currentUser?._id ?? currentUser?.id;
+    const assignedRaw = caseData.assignedConsultant;
+    const assignedId = assignedRaw?._id ?? assignedRaw;
+    const isAssignedConsultant =
+        userId && assignedId && String(assignedId) === String(userId);
+
+    const showAcknowledge =
+        currentUser?.role === 'consultant' && isAssignedConsultant && caseData.status === 'intake';
+
+    const canEditStatus =
+        currentUser &&
+        (['admin', 'attorney'].includes(currentUser.role) ||
+            (currentUser.role === 'consultant' && isAssignedConsultant));
+
+    const consultantIntakeOnly =
+        currentUser?.role === 'consultant' && isAssignedConsultant && caseData.status === 'intake';
+
+    const statusSelectOptions =
+        currentUser?.role === 'consultant'
+            ? ['review', 'active', 'pending', 'closed']
+            : ['intake', 'review', 'active', 'pending', 'closed', 'archived'];
 
     const tabs = [
         { id: 'overview', label: 'Overview', icon: 'dashboard' },
@@ -693,7 +789,7 @@ const CaseDetail = () => {
                 </nav>
                 <div className="flex justify-between items-center">
                     <div>
-                        <h1 className="text-2xl font-bold text-[#1f3b61] dark:text-white">{caseData.title}</h1>
+                        <h1 className="text-2xl font-bold text-[#1f3b61] dark:text-white">{caseData.caseName || caseData.title}</h1>
                         <p className="text-sm text-slate-500 mt-1">{caseData.caseType} • Created {new Date(caseData.createdAt).toLocaleDateString()}</p>
                     </div>
                     <div className="flex gap-3">
@@ -738,13 +834,43 @@ const CaseDetail = () => {
                                         <p className="text-xs text-slate-500 uppercase font-bold">Case Number</p>
                                         <p className="text-sm font-semibold mt-1">{caseData.caseNumber}</p>
                                     </div>
-                                    <div>
+                                    <div className="col-span-2 sm:col-span-1">
                                         <p className="text-xs text-slate-500 uppercase font-bold">Status</p>
-                                        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium mt-1 ${caseData.status === 'active' ? 'bg-emerald-100 text-emerald-800' :
-                                            caseData.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
-                                                caseData.status === 'closed' ? 'bg-slate-100 text-slate-800' :
-                                                    'bg-blue-100 text-blue-800'
-                                            }`}>{caseData.status}</span>
+                                        {canEditStatus && !consultantIntakeOnly ? (
+                                            <div className="mt-1 flex items-center gap-2 flex-wrap">
+                                                <select
+                                                    value={caseData.status}
+                                                    onChange={handleStatusChange}
+                                                    disabled={statusSaving}
+                                                    className="text-sm font-semibold border border-slate-200 dark:border-slate-600 rounded-lg px-2 py-1 bg-white dark:bg-slate-800 text-slate-900 dark:text-white min-w-[10rem]"
+                                                >
+                                                    {statusSelectOptions.map((s) => (
+                                                        <option key={s} value={s}>
+                                                            {s}
+                                                        </option>
+                                                    ))}
+                                                </select>
+                                                <span className="material-icons text-[18px] text-slate-400" title="Edit status">
+                                                    edit
+                                                </span>
+                                                {statusSaving && (
+                                                    <span className="text-xs text-slate-500">Saving…</span>
+                                                )}
+                                            </div>
+                                        ) : (
+                                            <span
+                                                className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium mt-1 ${caseData.status === 'active' ? 'bg-emerald-100 text-emerald-800' :
+                                                    caseData.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
+                                                        caseData.status === 'closed' || caseData.status === 'archived'
+                                                            ? 'bg-slate-100 text-slate-800'
+                                                            : caseData.status === 'intake'
+                                                              ? 'bg-slate-200 text-slate-700'
+                                                              : 'bg-blue-100 text-blue-800'
+                                                    }`}
+                                            >
+                                                {caseData.status}
+                                            </span>
+                                        )}
                                     </div>
                                     <div>
                                         <p className="text-xs text-slate-500 uppercase font-bold">Client</p>
@@ -759,22 +885,56 @@ const CaseDetail = () => {
                         </div>
                         <div className="space-y-6">
                             <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-6">
-                                <h3 className="text-lg font-bold mb-4">Assigned Team</h3>
+                                <div className="flex items-start justify-between gap-2 mb-4">
+                                    <h3 className="text-lg font-bold">Assigned consultant</h3>
+                                    {canAssignConsultant && (
+                                        <button
+                                            type="button"
+                                            onClick={openAssignModal}
+                                            className="shrink-0 px-3 py-1.5 text-xs font-semibold rounded-lg bg-[#1f3b61] text-white hover:bg-[#152a47] transition-colors"
+                                        >
+                                            Assign to…
+                                        </button>
+                                    )}
+                                </div>
                                 <div className="space-y-3">
-                                    {caseData.assignedTo && caseData.assignedTo.length > 0 ? (
-                                        caseData.assignedTo.map((member, index) => (
-                                            <div key={index} className="flex items-center gap-3">
-                                                <div className="w-10 h-10 rounded-full bg-[#1f3b61]/10 flex items-center justify-center">
-                                                    <span className="material-icons text-[#1f3b61]">person</span>
-                                                </div>
-                                                <div>
-                                                    <p className="text-sm font-semibold">{member.name || member.email || 'Team Member'}</p>
-                                                    <p className="text-xs text-slate-500">{member.role || 'Staff'}</p>
-                                                </div>
+                                    {caseData.assignedConsultant ? (
+                                        <div className="flex items-center gap-3">
+                                            <div className="w-10 h-10 rounded-full bg-[#1f3b61]/10 flex items-center justify-center">
+                                                <span className="material-icons text-[#1f3b61]">person</span>
                                             </div>
-                                        ))
+                                            <div>
+                                                <p className="text-sm font-semibold">
+                                                    {caseData.assignedConsultant.fullName ||
+                                                        caseData.assignedConsultant.name ||
+                                                        'Consultant'}
+                                                </p>
+                                                <p className="text-xs text-slate-500">
+                                                    {caseData.assignedConsultant.email || 'Consultant'}
+                                                </p>
+                                            </div>
+                                        </div>
                                     ) : (
-                                        <p className="text-sm text-slate-500">No team members assigned</p>
+                                        <p className="text-sm text-slate-500">
+                                            No consultant assigned yet.
+                                            {canAssignConsultant && ' Use Assign to… to choose a consultant.'}
+                                        </p>
+                                    )}
+                                    {showAcknowledge && (
+                                        <button
+                                            type="button"
+                                            onClick={handleAcknowledge}
+                                            disabled={ackLoading}
+                                            className="mt-4 w-full px-4 py-2.5 rounded-lg bg-emerald-600 text-white text-sm font-semibold hover:bg-emerald-700 disabled:opacity-60 transition-colors"
+                                        >
+                                            {ackLoading ? 'Acknowledging…' : 'Acknowledge case'}
+                                        </button>
+                                    )}
+                                    {showAcknowledge && (
+                                        <p className="text-xs text-slate-500 mt-2">
+                                            Confirms you have received this case. Status will move from intake to
+                                            review.
+                                        </p>
                                     )}
                                 </div>
                             </div>
@@ -787,7 +947,7 @@ const CaseDetail = () => {
                             <h3 className="text-lg font-semibold text-slate-900 dark:text-white">Medical Records</h3>
                             <button
                                 onClick={() => setShowUploadModal(true)}
-                                className="flex items-center gap-2 px-4 py-2 bg-[#0891b2] text-white rounded-lg hover:bg-teal-700 transition-colors"
+                                className="flex items-center gap-2 px-4 py-2 bg-[#801829] text-white rounded-lg hover:bg-[#60121f] transition-colors"
                             >
                                 <span className="material-icons text-sm">upload_file</span>
                                 Upload Record
@@ -795,7 +955,7 @@ const CaseDetail = () => {
                         </div>
                         {tabLoading ? (
                             <div className="flex items-center justify-center py-12">
-                                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#0891b2]"></div>
+                                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#801829]"></div>
                             </div>
                         ) : medicalRecords.length > 0 ? (
                             <div className="bg-white dark:bg-slate-900 rounded-xl border-2 border-slate-200 dark:border-slate-700 shadow-md overflow-hidden">
@@ -841,14 +1001,14 @@ const CaseDetail = () => {
                                                                 className="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors"
                                                                 title="View"
                                                             >
-                                                                <span className="material-icons text-slate-400 hover:text-[#0891b2] text-lg">visibility</span>
+                                                                <span className="material-icons text-slate-400 hover:text-[#801829] text-lg">visibility</span>
                                                             </button>
                                                             <button
                                                                 onClick={() => handleDownloadRecord(record)}
                                                                 className="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors"
                                                                 title="Download"
                                                             >
-                                                                <span className="material-icons text-slate-400 hover:text-[#0891b2] text-lg">download</span>
+                                                                <span className="material-icons text-slate-400 hover:text-[#801829] text-lg">download</span>
                                                             </button>
                                                         </div>
                                                     </td>
@@ -871,7 +1031,7 @@ const CaseDetail = () => {
                             <h3 className="text-lg font-semibold text-slate-900 dark:text-white">Timeline</h3>
                             <button
                                 onClick={() => setShowAddTimelineEvent(true)}
-                                className="flex items-center gap-2 px-4 py-2 bg-[#0891b2] text-white rounded-lg hover:bg-teal-700 transition-colors"
+                                className="flex items-center gap-2 px-4 py-2 bg-[#801829] text-white rounded-lg hover:bg-[#60121f] transition-colors"
                             >
                                 <span className="material-icons text-sm">add</span>
                                 Add Event
@@ -879,14 +1039,14 @@ const CaseDetail = () => {
                         </div>
                         {tabLoading ? (
                             <div className="flex items-center justify-center py-12">
-                                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#0891b2]"></div>
+                                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#801829]"></div>
                             </div>
                         ) : timelineEvents.length > 0 ? (
                             <div className="bg-white dark:bg-slate-900 rounded-xl border-2 border-slate-200 dark:border-slate-700 shadow-md p-6">
                                 <div className="relative space-y-4">
                                     {timelineEvents.sort((a, b) => new Date(a.date) - new Date(b.date)).map((event, idx) => (
-                                        <div key={event._id || idx} className="relative pl-8 pb-8 border-l-4 border-[#0891b2] last:pb-0">
-                                            <div className="absolute -left-2 top-0 w-4 h-4 rounded-full bg-[#0891b2] border-4 border-white dark:border-slate-900"></div>
+                                        <div key={event._id || idx} className="relative pl-8 pb-8 border-l-4 border-[#801829] last:pb-0">
+                                            <div className="absolute -left-2 top-0 w-4 h-4 rounded-full bg-[#801829] border-4 border-white dark:border-slate-900"></div>
                                             <div className="bg-slate-50 dark:bg-slate-800 rounded-lg p-4 ml-4 hover:shadow-md transition-shadow">
                                                 <div className="flex items-start justify-between mb-2">
                                                     <div className="flex-1">
@@ -939,7 +1099,7 @@ const CaseDetail = () => {
                             <h3 className="text-lg font-semibold text-slate-900 dark:text-white">Case Analysis</h3>
                             <button
                                 onClick={() => setShowAnalysisModal(true)}
-                                className="flex items-center gap-2 px-4 py-2 bg-[#0891b2] text-white rounded-lg hover:bg-teal-700 transition-colors"
+                                className="flex items-center gap-2 px-4 py-2 bg-[#801829] text-white rounded-lg hover:bg-[#60121f] transition-colors"
                             >
                                 <span className="material-icons text-sm">add</span>
                                 Add Finding
@@ -947,7 +1107,7 @@ const CaseDetail = () => {
                         </div>
                         {tabLoading ? (
                             <div className="flex items-center justify-center py-12">
-                                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#0891b2]"></div>
+                                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#801829]"></div>
                             </div>
                         ) : analysis && (analysis.standardsOfCare?.length > 0 || analysis.breaches?.length > 0) ? (
                             <div className="space-y-6">
@@ -1016,7 +1176,7 @@ const CaseDetail = () => {
                             <h3 className="text-lg font-semibold text-slate-900 dark:text-white">Damages Tracking</h3>
                             <button
                                 onClick={() => setShowDamagesModal(true)}
-                                className="flex items-center gap-2 px-4 py-2 bg-[#0891b2] text-white rounded-lg hover:bg-teal-700 transition-colors"
+                                className="flex items-center gap-2 px-4 py-2 bg-[#801829] text-white rounded-lg hover:bg-[#60121f] transition-colors"
                             >
                                 <span className="material-icons text-sm">add</span>
                                 Add Damage
@@ -1024,7 +1184,7 @@ const CaseDetail = () => {
                         </div>
                         {tabLoading ? (
                             <div className="flex items-center justify-center py-12">
-                                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#0891b2]"></div>
+                                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#801829]"></div>
                             </div>
                         ) : damages.length > 0 ? (
                             <div className="bg-white dark:bg-slate-900 rounded-xl border-2 border-slate-200 dark:border-slate-700 shadow-md overflow-hidden">
@@ -1081,7 +1241,7 @@ const CaseDetail = () => {
                             <h3 className="text-lg font-semibold text-slate-900 dark:text-white">Tasks</h3>
                             <button
                                 onClick={() => setShowTaskModal(true)}
-                                className="flex items-center gap-2 px-4 py-2 bg-[#0891b2] text-white rounded-lg hover:bg-teal-700 transition-colors"
+                                className="flex items-center gap-2 px-4 py-2 bg-[#801829] text-white rounded-lg hover:bg-[#60121f] transition-colors"
                             >
                                 <span className="material-icons text-sm">add</span>
                                 Create Task
@@ -1089,7 +1249,7 @@ const CaseDetail = () => {
                         </div>
                         {tabLoading ? (
                             <div className="flex items-center justify-center py-12">
-                                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#0891b2]"></div>
+                                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#801829]"></div>
                             </div>
                         ) : tasks.length > 0 ? (
                             <div className="bg-white dark:bg-slate-900 rounded-xl border-2 border-slate-200 dark:border-slate-700 shadow-md overflow-hidden">
@@ -1150,7 +1310,7 @@ const CaseDetail = () => {
                             <h3 className="text-lg font-semibold text-slate-900 dark:text-white">Notes</h3>
                             <button
                                 onClick={() => setShowNoteModal(true)}
-                                className="flex items-center gap-2 px-4 py-2 bg-[#0891b2] text-white rounded-lg hover:bg-teal-700 transition-colors"
+                                className="flex items-center gap-2 px-4 py-2 bg-[#801829] text-white rounded-lg hover:bg-[#60121f] transition-colors"
                             >
                                 <span className="material-icons text-sm">add</span>
                                 Add Note
@@ -1158,7 +1318,7 @@ const CaseDetail = () => {
                         </div>
                         {tabLoading ? (
                             <div className="flex items-center justify-center py-12">
-                                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#0891b2]"></div>
+                                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#801829]"></div>
                             </div>
                         ) : notes.length > 0 ? (
                             <div className="grid grid-cols-1 gap-4">
@@ -1176,7 +1336,7 @@ const CaseDetail = () => {
                                             {note.tags && note.tags.length > 0 && (
                                                 <div className="flex gap-1">
                                                     {note.tags.map((tag, idx) => (
-                                                        <span key={idx} className="px-2 py-1 bg-[#0891b2]/10 text-[#0891b2] rounded text-xs font-medium">
+                                                        <span key={idx} className="px-2 py-1 bg-[#801829]/10 text-[#801829] rounded text-xs font-medium">
                                                             {tag}
                                                         </span>
                                                     ))}
@@ -1220,7 +1380,7 @@ const CaseDetail = () => {
                                 <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
                                     Document File *
                                 </label>
-                                <div className="border-2 border-dashed border-slate-300 dark:border-slate-600 rounded-lg p-8 text-center hover:border-[#0891b2] transition-colors">
+                                <div className="border-2 border-dashed border-slate-300 dark:border-slate-600 rounded-lg p-8 text-center hover:border-[#801829] transition-colors">
                                     <input
                                         type="file"
                                         id="file-upload"
@@ -1231,7 +1391,7 @@ const CaseDetail = () => {
                                     />
                                     <label htmlFor="file-upload" className="cursor-pointer">
                                         <div className="flex flex-col items-center">
-                                            <span className="material-icons text-5xl text-[#0891b2] mb-3">cloud_upload</span>
+                                            <span className="material-icons text-5xl text-[#801829] mb-3">cloud_upload</span>
                                             {uploadData.fileName ? (
                                                 <div>
                                                     <p className="text-sm font-medium text-slate-900 dark:text-white">{uploadData.fileName}</p>
@@ -1258,7 +1418,7 @@ const CaseDetail = () => {
                                         required
                                         value={uploadData.documentType}
                                         onChange={(e) => setUploadData({ ...uploadData, documentType: e.target.value })}
-                                        className="w-full px-4 py-2.5 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-[#0891b2] focus:border-[#0891b2] outline-none dark:bg-slate-700 dark:text-white"
+                                        className="w-full px-4 py-2.5 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-[#801829] focus:border-[#801829] outline-none dark:bg-slate-700 dark:text-white"
                                     >
                                         <option value="medical-record">Medical Record</option>
                                         <option value="lab-report">Lab Report</option>
@@ -1278,7 +1438,7 @@ const CaseDetail = () => {
                                         type="date"
                                         value={uploadData.recordDate}
                                         onChange={(e) => setUploadData({ ...uploadData, recordDate: e.target.value })}
-                                        className="w-full px-4 py-2.5 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-[#0891b2] focus:border-[#0891b2] outline-none dark:bg-slate-700 dark:text-white"
+                                        className="w-full px-4 py-2.5 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-[#801829] focus:border-[#801829] outline-none dark:bg-slate-700 dark:text-white"
                                     />
                                 </div>
                             </div>
@@ -1292,7 +1452,7 @@ const CaseDetail = () => {
                                     type="text"
                                     value={uploadData.provider}
                                     onChange={(e) => setUploadData({ ...uploadData, provider: e.target.value })}
-                                    className="w-full px-4 py-2.5 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-[#0891b2] focus:border-[#0891b2] outline-none dark:bg-slate-700 dark:text-white"
+                                    className="w-full px-4 py-2.5 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-[#801829] focus:border-[#801829] outline-none dark:bg-slate-700 dark:text-white"
                                     placeholder="Dr. Smith, City Hospital, etc."
                                 />
                             </div>
@@ -1305,7 +1465,7 @@ const CaseDetail = () => {
                                 <textarea
                                     value={uploadData.notes}
                                     onChange={(e) => setUploadData({ ...uploadData, notes: e.target.value })}
-                                    className="w-full px-4 py-2.5 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-[#0891b2] focus:border-[#0891b2] outline-none dark:bg-slate-700 dark:text-white"
+                                    className="w-full px-4 py-2.5 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-[#801829] focus:border-[#801829] outline-none dark:bg-slate-700 dark:text-white"
                                     rows="3"
                                     placeholder="Add any additional notes or context..."
                                 />
@@ -1334,7 +1494,7 @@ const CaseDetail = () => {
                                 <button
                                     type="submit"
                                     disabled={uploading || !uploadData.file}
-                                    className="flex-1 px-4 py-2.5 bg-[#0891b2] hover:bg-teal-700 text-white rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed font-semibold flex items-center justify-center gap-2"
+                                    className="flex-1 px-4 py-2.5 bg-[#801829] hover:bg-[#60121f] text-white rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed font-semibold flex items-center justify-center gap-2"
                                 >
                                     {uploading ? (
                                         <>
@@ -1381,7 +1541,7 @@ const CaseDetail = () => {
                                     required
                                     value={noteData.title}
                                     onChange={(e) => setNoteData({ ...noteData, title: e.target.value })}
-                                    className="w-full px-4 py-2 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-[#0891b2] outline-none dark:bg-slate-700 dark:text-white"
+                                    className="w-full px-4 py-2 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-[#801829] outline-none dark:bg-slate-700 dark:text-white"
                                     placeholder="Note title"
                                 />
                             </div>
@@ -1391,7 +1551,7 @@ const CaseDetail = () => {
                                     required
                                     value={noteData.content}
                                     onChange={(e) => setNoteData({ ...noteData, content: e.target.value })}
-                                    className="w-full px-4 py-2 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-[#0891b2] outline-none dark:bg-slate-700 dark:text-white"
+                                    className="w-full px-4 py-2 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-[#801829] outline-none dark:bg-slate-700 dark:text-white"
                                     rows="4"
                                     placeholder="Write your note here..."
                                 />
@@ -1400,7 +1560,7 @@ const CaseDetail = () => {
                                 <button type="button" onClick={() => setShowNoteModal(false)} className="flex-1 px-4 py-2 border border-slate-300 rounded-lg hover:bg-slate-50 transition-colors">
                                     Cancel
                                 </button>
-                                <button type="submit" className="flex-1 px-4 py-2 bg-[#0891b2] text-white rounded-lg hover:bg-teal-700 transition-colors">
+                                <button type="submit" className="flex-1 px-4 py-2 bg-[#801829] text-white rounded-lg hover:bg-[#60121f] transition-colors">
                                     Add Note
                                 </button>
                             </div>
@@ -1429,7 +1589,7 @@ const CaseDetail = () => {
                                         required
                                         value={damagesData.category}
                                         onChange={(e) => setDamagesData({ ...damagesData, category: e.target.value })}
-                                        className="w-full px-4 py-2 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-[#0891b2] outline-none dark:bg-slate-700 dark:text-white"
+                                        className="w-full px-4 py-2 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-[#801829] outline-none dark:bg-slate-700 dark:text-white"
                                     >
                                         <option value="economic">Economic</option>
                                         <option value="non-economic">Non-Economic</option>
@@ -1443,7 +1603,7 @@ const CaseDetail = () => {
                                         required
                                         value={damagesData.type}
                                         onChange={(e) => setDamagesData({ ...damagesData, type: e.target.value })}
-                                        className="w-full px-4 py-2 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-[#0891b2] outline-none dark:bg-slate-700 dark:text-white"
+                                        className="w-full px-4 py-2 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-[#801829] outline-none dark:bg-slate-700 dark:text-white"
                                         placeholder="e.g., Medical Bills, Lost Wages"
                                     />
                                 </div>
@@ -1454,7 +1614,7 @@ const CaseDetail = () => {
                                     required
                                     value={damagesData.description}
                                     onChange={(e) => setDamagesData({ ...damagesData, description: e.target.value })}
-                                    className="w-full px-4 py-2 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-[#0891b2] outline-none dark:bg-slate-700 dark:text-white"
+                                    className="w-full px-4 py-2 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-[#801829] outline-none dark:bg-slate-700 dark:text-white"
                                     rows="3"
                                     placeholder="Describe the damage or injury..."
                                 />
@@ -1469,7 +1629,7 @@ const CaseDetail = () => {
                                         step="0.01"
                                         value={damagesData.amount}
                                         onChange={(e) => setDamagesData({ ...damagesData, amount: e.target.value })}
-                                        className="w-full px-4 py-2 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-[#0891b2] outline-none dark:bg-slate-700 dark:text-white"
+                                        className="w-full px-4 py-2 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-[#801829] outline-none dark:bg-slate-700 dark:text-white"
                                         placeholder="0.00"
                                     />
                                 </div>
@@ -1480,7 +1640,7 @@ const CaseDetail = () => {
                                         required
                                         value={damagesData.dateIncurred}
                                         onChange={(e) => setDamagesData({ ...damagesData, dateIncurred: e.target.value })}
-                                        className="w-full px-4 py-2 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-[#0891b2] outline-none dark:bg-slate-700 dark:text-white"
+                                        className="w-full px-4 py-2 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-[#801829] outline-none dark:bg-slate-700 dark:text-white"
                                     />
                                 </div>
                             </div>
@@ -1490,7 +1650,7 @@ const CaseDetail = () => {
                                     required
                                     value={damagesData.status}
                                     onChange={(e) => setDamagesData({ ...damagesData, status: e.target.value })}
-                                    className="w-full px-4 py-2 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-[#0891b2] outline-none dark:bg-slate-700 dark:text-white"
+                                    className="w-full px-4 py-2 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-[#801829] outline-none dark:bg-slate-700 dark:text-white"
                                 >
                                     <option value="estimated">Estimated</option>
                                     <option value="documented">Documented</option>
@@ -1503,7 +1663,7 @@ const CaseDetail = () => {
                                 <textarea
                                     value={damagesData.notes}
                                     onChange={(e) => setDamagesData({ ...damagesData, notes: e.target.value })}
-                                    className="w-full px-4 py-2 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-[#0891b2] outline-none dark:bg-slate-700 dark:text-white"
+                                    className="w-full px-4 py-2 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-[#801829] outline-none dark:bg-slate-700 dark:text-white"
                                     rows="2"
                                     placeholder="Additional notes or documentation references..."
                                 />
@@ -1512,7 +1672,7 @@ const CaseDetail = () => {
                                 <button type="button" onClick={() => setShowDamagesModal(false)} className="flex-1 px-4 py-2 border border-slate-300 rounded-lg hover:bg-slate-50 transition-colors">
                                     Cancel
                                 </button>
-                                <button type="submit" className="flex-1 px-4 py-2 bg-[#0891b2] text-white rounded-lg hover:bg-teal-700 transition-colors">
+                                <button type="submit" className="flex-1 px-4 py-2 bg-[#801829] text-white rounded-lg hover:bg-[#60121f] transition-colors">
                                     Add Damage
                                 </button>
                             </div>
@@ -1540,7 +1700,7 @@ const CaseDetail = () => {
                                     required
                                     value={analysisData.finding}
                                     onChange={(e) => setAnalysisData({ ...analysisData, finding: e.target.value })}
-                                    className="w-full px-4 py-2 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-[#0891b2] outline-none dark:bg-slate-700 dark:text-white"
+                                    className="w-full px-4 py-2 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-[#801829] outline-none dark:bg-slate-700 dark:text-white"
                                     rows="3"
                                     placeholder="Describe the finding..."
                                 />
@@ -1552,7 +1712,7 @@ const CaseDetail = () => {
                                         required
                                         value={analysisData.category}
                                         onChange={(e) => setAnalysisData({ ...analysisData, category: e.target.value })}
-                                        className="w-full px-4 py-2 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-[#0891b2] outline-none dark:bg-slate-700 dark:text-white"
+                                        className="w-full px-4 py-2 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-[#801829] outline-none dark:bg-slate-700 dark:text-white"
                                     >
                                         <option value="deviation">Deviation from Standard</option>
                                         <option value="causation">Causation</option>
@@ -1566,7 +1726,7 @@ const CaseDetail = () => {
                                         required
                                         value={analysisData.severity}
                                         onChange={(e) => setAnalysisData({ ...analysisData, severity: e.target.value })}
-                                        className="w-full px-4 py-2 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-[#0891b2] outline-none dark:bg-slate-700 dark:text-white"
+                                        className="w-full px-4 py-2 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-[#801829] outline-none dark:bg-slate-700 dark:text-white"
                                     >
                                         <option value="low">Low</option>
                                         <option value="medium">Medium</option>
@@ -1579,7 +1739,7 @@ const CaseDetail = () => {
                                 <textarea
                                     value={analysisData.evidence}
                                     onChange={(e) => setAnalysisData({ ...analysisData, evidence: e.target.value })}
-                                    className="w-full px-4 py-2 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-[#0891b2] outline-none dark:bg-slate-700 dark:text-white"
+                                    className="w-full px-4 py-2 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-[#801829] outline-none dark:bg-slate-700 dark:text-white"
                                     rows="2"
                                     placeholder="Supporting evidence..."
                                 />
@@ -1588,7 +1748,7 @@ const CaseDetail = () => {
                                 <button type="button" onClick={() => setShowAnalysisModal(false)} className="flex-1 px-4 py-2 border border-slate-300 rounded-lg hover:bg-slate-50 transition-colors">
                                     Cancel
                                 </button>
-                                <button type="submit" className="flex-1 px-4 py-2 bg-[#0891b2] text-white rounded-lg hover:bg-teal-700 transition-colors">
+                                <button type="submit" className="flex-1 px-4 py-2 bg-[#801829] text-white rounded-lg hover:bg-[#60121f] transition-colors">
                                     Add Finding
                                 </button>
                             </div>
@@ -1628,16 +1788,16 @@ const CaseDetail = () => {
                             <div className="grid grid-cols-2 gap-4">
                                 <div>
                                     <label className="block text-sm font-medium mb-2">Date *</label>
-                                    <input type="date" name="date" required className="w-full px-4 py-2 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-[#0891b2] outline-none dark:bg-slate-700 dark:text-white" />
+                                    <input type="date" name="date" required className="w-full px-4 py-2 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-[#801829] outline-none dark:bg-slate-700 dark:text-white" />
                                 </div>
                                 <div>
                                     <label className="block text-sm font-medium mb-2">Time</label>
-                                    <input type="time" name="time" className="w-full px-4 py-2 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-[#0891b2] outline-none dark:bg-slate-700 dark:text-white" />
+                                    <input type="time" name="time" className="w-full px-4 py-2 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-[#801829] outline-none dark:bg-slate-700 dark:text-white" />
                                 </div>
                             </div>
                             <div>
                                 <label className="block text-sm font-medium mb-2">Category *</label>
-                                <select name="category" required className="w-full px-4 py-2 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-[#0891b2] outline-none dark:bg-slate-700 dark:text-white">
+                                <select name="category" required className="w-full px-4 py-2 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-[#801829] outline-none dark:bg-slate-700 dark:text-white">
                                     <option value="">Select Category</option>
                                     <option value="treatment">Treatment</option>
                                     <option value="medication">Medication</option>
@@ -1651,25 +1811,25 @@ const CaseDetail = () => {
                             </div>
                             <div>
                                 <label className="block text-sm font-medium mb-2">Event Title *</label>
-                                <input type="text" name="title" required placeholder="Event Title" className="w-full px-4 py-2 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-[#0891b2] outline-none dark:bg-slate-700 dark:text-white" />
+                                <input type="text" name="title" required placeholder="Event Title" className="w-full px-4 py-2 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-[#801829] outline-none dark:bg-slate-700 dark:text-white" />
                             </div>
                             <div>
                                 <label className="block text-sm font-medium mb-2">Description</label>
-                                <textarea name="description" placeholder="Description" className="w-full px-4 py-2 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-[#0891b2] outline-none dark:bg-slate-700 dark:text-white" rows="3"></textarea>
+                                <textarea name="description" placeholder="Description" className="w-full px-4 py-2 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-[#801829] outline-none dark:bg-slate-700 dark:text-white" rows="3"></textarea>
                             </div>
                             <div>
                                 <label className="block text-sm font-medium mb-2">Provider Name</label>
-                                <input type="text" name="providerName" placeholder="Provider Name" className="w-full px-4 py-2 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-[#0891b2] outline-none dark:bg-slate-700 dark:text-white" />
+                                <input type="text" name="providerName" placeholder="Provider Name" className="w-full px-4 py-2 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-[#801829] outline-none dark:bg-slate-700 dark:text-white" />
                             </div>
                             <div>
                                 <label className="block text-sm font-medium mb-2">Facility</label>
-                                <input type="text" name="facility" placeholder="Facility" className="w-full px-4 py-2 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-[#0891b2] outline-none dark:bg-slate-700 dark:text-white" />
+                                <input type="text" name="facility" placeholder="Facility" className="w-full px-4 py-2 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-[#801829] outline-none dark:bg-slate-700 dark:text-white" />
                             </div>
                             <div className="flex gap-3 pt-4">
                                 <button type="button" onClick={() => setShowAddTimelineEvent(false)} className="flex-1 px-4 py-2 border border-slate-300 rounded-lg hover:bg-slate-50 transition-colors">
                                     Cancel
                                 </button>
-                                <button type="submit" className="flex-1 px-4 py-2 bg-[#0891b2] text-white rounded-lg hover:bg-teal-700 transition-colors">
+                                <button type="submit" className="flex-1 px-4 py-2 bg-[#801829] text-white rounded-lg hover:bg-[#60121f] transition-colors">
                                     Add Event
                                 </button>
                             </div>
@@ -1726,7 +1886,7 @@ const CaseDetail = () => {
                         <div className="px-6 py-4 border-t border-slate-200 dark:border-slate-700 flex gap-3">
                             <button
                                 onClick={() => handleDownloadRecord(selectedRecord)}
-                                className="flex-1 px-4 py-2.5 bg-[#0891b2] hover:bg-teal-700 text-white rounded-lg transition-colors font-semibold flex items-center justify-center gap-2"
+                                className="flex-1 px-4 py-2.5 bg-[#801829] hover:bg-[#60121f] text-white rounded-lg transition-colors font-semibold flex items-center justify-center gap-2"
                             >
                                 <span className="material-icons text-sm">download</span>
                                 Download File
@@ -1741,6 +1901,58 @@ const CaseDetail = () => {
                             >
                                 Close
                             </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Assign consultant (admin / attorney) */}
+            {showAssignModal && (
+                <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-[60] p-4">
+                    <div className="bg-white dark:bg-slate-900 rounded-xl shadow-2xl max-w-md w-full max-h-[85vh] flex flex-col overflow-hidden border border-slate-200 dark:border-slate-700">
+                        <div className="px-5 py-4 border-b border-slate-200 dark:border-slate-700 flex items-center justify-between shrink-0">
+                            <h3 className="text-lg font-bold text-slate-900 dark:text-white">Assign consultant</h3>
+                            <button
+                                type="button"
+                                onClick={() => setShowAssignModal(false)}
+                                className="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors"
+                                aria-label="Close"
+                            >
+                                <span className="material-icons text-slate-500">close</span>
+                            </button>
+                        </div>
+                        <div className="p-5 overflow-y-auto flex-1">
+                            {loadingConsultants ? (
+                                <div className="flex items-center justify-center py-10 text-slate-500">
+                                    <span className="material-icons animate-spin mr-2">refresh</span>
+                                    Loading consultants…
+                                </div>
+                            ) : consultantsList.length === 0 ? (
+                                <p className="text-sm text-slate-600 dark:text-slate-400">
+                                    No consultant users found. Add users with role Consultant under Users first.
+                                </p>
+                            ) : (
+                                <ul className="divide-y divide-slate-100 dark:divide-slate-800">
+                                    {consultantsList.map((c) => (
+                                        <li key={c._id} className="py-3 flex items-center justify-between gap-3 first:pt-0">
+                                            <div className="min-w-0">
+                                                <p className="text-sm font-semibold text-slate-900 dark:text-white truncate">
+                                                    {c.fullName}
+                                                </p>
+                                                <p className="text-xs text-slate-500 truncate">{c.email}</p>
+                                            </div>
+                                            <button
+                                                type="button"
+                                                disabled={assigningConsultantId === c._id}
+                                                onClick={() => handleAssignConsultant(c._id)}
+                                                className="shrink-0 px-3 py-1.5 text-xs font-semibold rounded-lg bg-[#1f3b61] text-white hover:bg-[#152a47] disabled:opacity-60 transition-colors"
+                                            >
+                                                {assigningConsultantId === c._id ? 'Saving…' : 'Assign'}
+                                            </button>
+                                        </li>
+                                    ))}
+                                </ul>
+                            )}
                         </div>
                     </div>
                 </div>
