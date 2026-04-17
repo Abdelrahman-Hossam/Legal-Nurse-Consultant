@@ -1,7 +1,17 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import clientService from '../../../services/client.service';
-import PagesTopBar, { pagesTopBarPrimaryClass, pagesTopBarSecondaryClass } from '../../../shared/components/PagesTopBar';
+import PagesTopBar, {
+    pagesListPageCanvasClass,
+    pagesListPageHeaderBandClass,
+    pagesListPageMaxInnerClass,
+    pagesTopBarFlushOnCreamClass,
+    pagesTopBarPrimaryClass,
+    pagesTopBarSecondaryClass,
+    pagesTopBarSplitTitle,
+    pagesTopBarUiSansClass,
+    pagesTopBarWatermarkWord
+} from '../../../shared/components/PagesTopBar';
 
 const ClientsList = () => {
     const navigate = useNavigate();
@@ -145,34 +155,45 @@ const ClientsList = () => {
     };
 
     return (
-        <div className="max-w-7xl mx-auto">
-            <PagesTopBar
-                title="Client Directory"
-                subtitle="Manage HIPAA-compliant attorney relationships and firm records."
-            >
-                <button type="button" onClick={handleExportCSV} className={pagesTopBarSecondaryClass}>
-                    <span className="material-icons text-sm">file_download</span>
-                    Export CSV
-                </button>
-                <button
-                    type="button"
-                    onClick={() => {
-                        setEditingClient(null);
-                        setFormData({
-                            fullName: '',
-                            email: '',
-                            phone: '',
-                            address: '',
-                            status: 'active'
-                        });
-                        setShowCreateModal(true);
-                    }}
-                    className={pagesTopBarPrimaryClass}
-                >
-                    <span className="material-icons text-sm">person_add</span>
-                    New Client
-                </button>
-            </PagesTopBar>
+        <>
+            <div className={pagesListPageCanvasClass}>
+                <div className={pagesListPageMaxInnerClass}>
+                    <div className="relative z-[1]">
+                        <div className={pagesListPageHeaderBandClass}>
+                            <PagesTopBar
+                                eyebrow="Client management"
+                                title={pagesTopBarSplitTitle('Client', 'Directory')}
+                                titleClassName="!m-0 !p-0"
+                                subtitle="Manage HIPAA-compliant attorney relationships and firm records."
+                                className={pagesTopBarFlushOnCreamClass}
+                                watermark={pagesTopBarWatermarkWord('Clients')}
+                            >
+                                <div className={`flex flex-wrap items-center gap-3 ${pagesTopBarUiSansClass}`}>
+                                    <button type="button" onClick={handleExportCSV} className={pagesTopBarSecondaryClass}>
+                                        <span className="material-icons text-sm">file_download</span>
+                                        Export CSV
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={() => {
+                                            setEditingClient(null);
+                                            setFormData({
+                                                fullName: '',
+                                                email: '',
+                                                phone: '',
+                                                address: '',
+                                                status: 'active'
+                                            });
+                                            setShowCreateModal(true);
+                                        }}
+                                        className={pagesTopBarPrimaryClass}
+                                    >
+                                        <span className="material-icons text-sm">person_add</span>
+                                        New Client
+                                    </button>
+                                </div>
+                            </PagesTopBar>
+                        </div>
 
             {/* Search & Filter Bar */}
             <div className="bg-white dark:bg-slate-800/50 p-4 rounded-xl border border-slate-200 dark:border-[#0891b2]/10 mb-6 flex flex-wrap items-center gap-4">
@@ -344,6 +365,9 @@ const ClientsList = () => {
                     <div>
                         <p className="text-[10px] uppercase font-bold text-slate-500 tracking-wider">Compliance Status</p>
                         <p className="text-xl font-bold text-slate-900 dark:text-white">HIPAA Secure</p>
+                    </div>
+                </div>
+            </div>
                     </div>
                 </div>
             </div>
@@ -589,7 +613,7 @@ const ClientsList = () => {
                     </div>
                 </div>
             )}
-        </div>
+        </>
     );
 };
 

@@ -1,7 +1,16 @@
 import { useEffect, useState } from 'react';
 import caseService from '../../../services/case.service';
 import damagesService from '../services/damages.service';
-import PagesTopBar, { pagesTopBarPrimaryClass } from '../../../shared/components/PagesTopBar';
+import PagesTopBar, {
+    pagesListPageCanvasClass,
+    pagesListPageHeaderBandClass,
+    pagesListPageMaxInnerClass,
+    pagesTopBarFlushOnCreamClass,
+    pagesTopBarPrimaryClass,
+    pagesTopBarSplitTitle,
+    pagesTopBarUiSansClass,
+    pagesTopBarWatermarkWord
+} from '../../../shared/components/PagesTopBar';
 
 const DamagesTracking = () => {
     const [selectedCase, setSelectedCase] = useState('');
@@ -117,16 +126,27 @@ const DamagesTracking = () => {
     const estimatedDamages = damages.filter(d => d.status === 'estimated').reduce((sum, item) => sum + (item.amount || 0), 0);
 
     return (
-        <div className="max-w-7xl mx-auto">
-            <PagesTopBar
-                title="Damages Tracking"
-                subtitle="Document injuries and calculate damages"
-            >
-                <button type="button" onClick={() => setShowAddModal(true)} className={pagesTopBarPrimaryClass}>
-                    <span className="material-icons text-sm">add</span>
-                    Add Damage Item
-                </button>
-            </PagesTopBar>
+        <>
+            <div className={pagesListPageCanvasClass}>
+                <div className={pagesListPageMaxInnerClass}>
+                    <div className="relative z-[1]">
+                        <div className={pagesListPageHeaderBandClass}>
+                            <PagesTopBar
+                                eyebrow="Damages repository"
+                                title={pagesTopBarSplitTitle('Damages', 'Tracking')}
+                                titleClassName="!m-0 !p-0"
+                                subtitle="Document injuries and calculate damages"
+                                className={pagesTopBarFlushOnCreamClass}
+                                watermark={pagesTopBarWatermarkWord('Damages')}
+                            >
+                                <div className={`flex flex-wrap items-center gap-3 ${pagesTopBarUiSansClass}`}>
+                                    <button type="button" onClick={() => setShowAddModal(true)} className={pagesTopBarPrimaryClass}>
+                                        <span className="material-icons text-sm">add</span>
+                                        Add Damage Item
+                                    </button>
+                                </div>
+                            </PagesTopBar>
+                        </div>
 
             <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm p-6 mb-6">
                 <div className="flex items-center gap-4">
@@ -262,6 +282,9 @@ const DamagesTracking = () => {
                             )}
                         </tbody>
                     </table>
+                </div>
+            </div>
+                    </div>
                 </div>
             </div>
 
@@ -419,7 +442,7 @@ const DamagesTracking = () => {
                     </div>
                 </div>
             )}
-        </div>
+        </>
     );
 };
 

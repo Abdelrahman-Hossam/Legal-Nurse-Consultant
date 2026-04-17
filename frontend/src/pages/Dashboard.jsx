@@ -7,6 +7,10 @@ import deadlineService from "../services/deadline.service";
 import taskService from "../services/task.service";
 import { Button } from "../shared/components/Button";
 
+/** Match Active Docket: all cases except closed/archived (see CasesList summary). */
+const countCasesByStatus = (rows, statusId) =>
+  rows?.find((r) => r._id === statusId)?.count ?? 0;
+
 const Dashboard = () => {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
@@ -69,7 +73,7 @@ const Dashboard = () => {
         casesData,
         upcomingDeadlines,
       ] = await Promise.all([
-        analyticsService.getCaseAnalytics({ status: "active" }),
+        analyticsService.getCaseAnalytics({}),
         analyticsService.getRevenueAnalytics({ groupBy: "month" }),
         taskService.getTaskStats(),
         clientService.getClientStats(),
@@ -85,12 +89,32 @@ const Dashboard = () => {
           (client) => new Date(client.createdAt) >= firstDayOfMonth,
         ).length || 0;
 
+      // getTaskStats() returns axios response.data (flat), not { data: { ... } }
+      const ts = taskStats || {};
+      const pendingTaskCount = ts.pendingTasks ?? 0;
+      const highPriorityCount = (ts.tasksByPriority || []).reduce((sum, row) => {
+        const key = row?._id;
+        if (key === "high" || key === "urgent") return sum + (row.count || 0);
+        return sum;
+      }, 0);
+
+      const casePayload = caseAnalytics?.data || {};
+      const totalCasesAll = Number(casePayload.totalCases) || 0;
+      const byStatus = casePayload.casesByStatus;
+      const closedCases =
+        countCasesByStatus(byStatus, "closed") +
+        countCasesByStatus(byStatus, "archived");
+      const activeCaseCount =
+        Array.isArray(byStatus)
+          ? Math.max(0, totalCasesAll - closedCases)
+          : totalCasesAll;
+
       // Update stats
       const updatedStats = [
         {
           icon: "cases",
           label: "Active Cases",
-          value: caseAnalytics.data?.totalCases?.toString() || "0",
+          value: String(activeCaseCount),
           change: caseAnalytics.data?.percentageChange
             ? `${caseAnalytics.data.percentageChange > 0 ? "+" : ""}${caseAnalytics.data.percentageChange.toFixed(1)}%`
             : "",
@@ -100,11 +124,9 @@ const Dashboard = () => {
         {
           icon: "pending_actions",
           label: "Pending Tasks",
-          value: taskStats.data?.pendingCount?.toString() || "0",
+          value: String(pendingTaskCount),
           badge:
-            taskStats.data?.highPriorityCount > 0
-              ? `${taskStats.data.highPriorityCount} High Priority`
-              : "",
+            highPriorityCount > 0 ? `${highPriorityCount} High Priority` : "",
           color: "orange",
         },
         {

@@ -38,6 +38,13 @@ router.put('/:id',
     caseController.updateCase
 );
 
+// Consultant acknowledges intake case → review
+router.post('/:id/acknowledge',
+    protect,
+    authorize('consultant'),
+    caseController.acknowledgeCase
+);
+
 // Delete case (admin only)
 router.delete('/:id',
     protect,

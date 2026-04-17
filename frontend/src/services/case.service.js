@@ -25,6 +25,12 @@ const caseService = {
         return response.data;
     },
 
+    // Consultant acknowledges intake → review
+    acknowledgeCase: async (id) => {
+        const response = await api.post(`/cases/${id}/acknowledge`);
+        return response.data;
+    },
+
     // Delete case
     deleteCase: async (id) => {
         const response = await api.delete(`/cases/${id}`);

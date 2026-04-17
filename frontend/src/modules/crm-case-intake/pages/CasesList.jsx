@@ -4,7 +4,9 @@ import caseService from '../../../services/case.service';
 import PagesTopBar, {
     pagesTopBarPrimaryClass,
     pagesTopBarSecondaryClass,
-    pagesTopBarUiSansClass
+    pagesTopBarSplitTitle,
+    pagesTopBarUiSansClass,
+    pagesTopBarWatermarkWord
 } from '../../../shared/components/PagesTopBar';
 
 /** Cream canvas — matches reference header screenshots */
@@ -88,6 +90,7 @@ const CasesList = () => {
     const [stats, setStats] = useState(null);
 
     useEffect(() => {
+        let stale = false;
         const load = async () => {
             try {
                 setLoading(true);
@@ -102,6 +105,8 @@ const CasesList = () => {
                     caseService.getCaseStats().catch(() => null)
                 ]);
 
+                if (stale) return;
+
                 const root = casesPayload?.data ?? casesPayload;
                 setCases(root?.cases || []);
                 setPagination(root?.pagination || { total: 0, page: 1, pages: 1 });
@@ -113,12 +118,18 @@ const CasesList = () => {
                     setStats(null);
                 }
             } catch (error) {
+                if (stale) return;
                 console.error('Error fetching cases:', error);
+                setCases([]);
+                setPagination({ total: 0, page: 1, pages: 1 });
             } finally {
-                setLoading(false);
+                if (!stale) setLoading(false);
             }
         };
         load();
+        return () => {
+            stale = true;
+        };
     }, [statusFilter, typeFilter, searchTerm]);
 
     const summaryLine = useMemo(() => {
@@ -182,20 +193,11 @@ const CasesList = () => {
                     <div className="border-b bg-[#f3efe5] border-[#e8e3d9] pb-10 mb-10 dark:border-slate-700/80">
                         <PagesTopBar
                             eyebrow="Case management"
-                            title={
-                                <span className="font-playfair text-[2rem] font-[900] leading-[1.12] tracking-[-0.02em] text-[#0a0a0a] md:text-[2.5rem] dark:text-[#f4f1ec]">
-                                    Active{' '}
-                                    <span className="font-[900] tracking-[-0.02em] italic text-[#801829] dark:text-[#d6556a]">Docket</span>
-                                </span>
-                            }
+                            title={pagesTopBarSplitTitle('Active', 'Docket')}
                             titleClassName="!m-0 !p-0"
                             subtitle={summaryLine}
                             className="!mb-0 !min-h-0 !rounded-none !border-0 !bg-transparent !px-0 !py-0 !shadow-none dark:!bg-transparent"
-                            watermark={
-                                <span className="select-none whitespace-nowrap font-playfair text-[clamp(2.5rem,9vw,4.75rem)] font-normal leading-none tracking-tight text-[#1a1409]/[0.09] md:text-[clamp(3rem,10vw,5.75rem)] dark:text-white/[0.06]">
-                                    Cases
-                                </span>
-                            }
+                            watermark={pagesTopBarWatermarkWord('Cases')}
                         >
                             <div className={`flex flex-wrap items-center gap-3 ${pagesTopBarUiSansClass}`}>
                                 <Link to={`${casesBase}/new`} className={`${pagesTopBarPrimaryClass} !px-6`}>
