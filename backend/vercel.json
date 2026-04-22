@@ -14,7 +14,7 @@
     ],
     "env": {
         "NODE_ENV": "production",
-        "CORS_ORIGIN": "https://lcfrontend.vercel.app",
-        "FRONTEND_URL": "https://lcfrontend.vercel.app"
+        "CORS_ORIGIN": "https://legal-nurse-consultant-deploy.vercel.app",
+        "FRONTEND_URL": "https://legal-nurse-consultant-deploy.vercel.app"
     }
 }
