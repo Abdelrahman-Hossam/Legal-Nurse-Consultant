@@ -1,5 +1,6 @@
 const User = require('../../../models/User.model');
 const AuditLog = require('../../../models/AuditLog.model');
+const LawFirm = require('../../../models/LawFirm.model');
 
 // @desc    Get all users
 // @route   GET /api/users
@@ -22,6 +23,7 @@ exports.getAllUsers = async (req, res, next) => {
         // Execute query with pagination
         const users = await User.find(query)
             .select('-password -refreshToken')
+            .populate('lawFirm', 'firmName')
             .limit(limit * 1)
             .skip((page - 1) * limit)
             .sort({ createdAt: -1 });
@@ -53,6 +55,7 @@ exports.getUserById = async (req, res, next) => {
     try {
         const user = await User.findById(req.params.id)
             .select('-password -refreshToken')
+            .populate('lawFirm', 'firmName')
             .populate('casesAssigned', 'caseNumber clientName status');
 
         if (!user) {
@@ -76,7 +79,7 @@ exports.getUserById = async (req, res, next) => {
 // @access  Private/Admin
 exports.createUser = async (req, res, next) => {
     try {
-        const { fullName, email, password, phone, role } = req.body;
+        const { fullName, email, password, phone, role, lawFirm } = req.body;
 
         // Check if user exists
         const existingUser = await User.findOne({ email });
@@ -87,13 +90,32 @@ exports.createUser = async (req, res, next) => {
             });
         }
 
+        let normalizedLawFirm = undefined;
+        if (role === 'attorney') {
+            if (!lawFirm) {
+                return res.status(400).json({
+                    success: false,
+                    message: 'Law firm is required for attorney users'
+                });
+            }
+            const firm = await LawFirm.findById(lawFirm).select('_id').lean();
+            if (!firm) {
+                return res.status(400).json({
+                    success: false,
+                    message: 'Selected law firm does not exist'
+                });
+            }
+            normalizedLawFirm = firm._id;
+        }
+
         // Create user
         const user = await User.create({
             fullName,
             email,
             password,
             phone,
-            role
+            role,
+            lawFirm: normalizedLawFirm
         });
 
         // Log action
@@ -115,7 +137,8 @@ exports.createUser = async (req, res, next) => {
                     fullName: user.fullName,
                     email: user.email,
                     role: user.role,
-                    status: user.status
+                    status: user.status,
+                    lawFirm: user.lawFirm
                 }
             }
         });
@@ -129,7 +152,7 @@ exports.createUser = async (req, res, next) => {
 // @access  Private/Admin
 exports.updateUser = async (req, res, next) => {
     try {
-        const { fullName, email, phone, role, status } = req.body;
+        const { fullName, email, phone, role, status, lawFirm } = req.body;
 
         const user = await User.findById(req.params.id);
 
@@ -146,6 +169,26 @@ exports.updateUser = async (req, res, next) => {
         if (phone) user.phone = phone;
         if (role) user.role = role;
         if (status) user.status = status;
+        const nextRole = role || user.role;
+        if (nextRole === 'attorney') {
+            const targetLawFirm = lawFirm || user.lawFirm;
+            if (!targetLawFirm) {
+                return res.status(400).json({
+                    success: false,
+                    message: 'Law firm is required for attorney users'
+                });
+            }
+            const firm = await LawFirm.findById(targetLawFirm).select('_id').lean();
+            if (!firm) {
+                return res.status(400).json({
+                    success: false,
+                    message: 'Selected law firm does not exist'
+                });
+            }
+            user.lawFirm = firm._id;
+        } else if (lawFirm !== undefined) {
+            user.lawFirm = undefined;
+        }
 
         await user.save();
 
@@ -169,7 +212,8 @@ exports.updateUser = async (req, res, next) => {
                     email: user.email,
                     phone: user.phone,
                     role: user.role,
-                    status: user.status
+                    status: user.status,
+                    lawFirm: user.lawFirm
                 }
             }
         });

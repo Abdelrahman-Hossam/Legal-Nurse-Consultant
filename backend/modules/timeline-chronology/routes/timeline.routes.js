@@ -21,6 +21,49 @@ const eventValidation = [
 // Get work queue
 router.get('/work-queue', protect, timelineController.getWorkQueue);
 
+// Unified case timeline (manual + medical-record-extracted events)
+router.get('/case/:caseId/unified', protect, timelineController.getUnifiedCaseTimeline);
+
+router.post('/case/:caseId/dismiss-extracted',
+    protect,
+    authorize('admin', 'attorney', 'consultant'),
+    body('key').isString().notEmpty().withMessage('Extracted event key is required'),
+    validate,
+    timelineController.dismissExtractedEvent
+);
+
+router.post('/case/:caseId/restore-extracted',
+    protect,
+    authorize('admin', 'attorney', 'consultant'),
+    body('key').isString().notEmpty().withMessage('Extracted event key is required'),
+    validate,
+    timelineController.restoreExtractedEvent
+);
+
+router.post('/case/:caseId/promote-extracted',
+    protect,
+    authorize('admin', 'attorney', 'consultant'),
+    body('event.title').isString().notEmpty().withMessage('Event title is required'),
+    body('event.eventDate').notEmpty().withMessage('Event date is required'),
+    validate,
+    timelineController.promoteExtractedEvent
+);
+
+// Scan a single medical record for candidate timeline events
+router.get('/case/:caseId/scan/:recordId',
+    protect,
+    timelineController.scanRecord
+);
+
+// Bulk add selected extracted events to the timeline (Scan flow)
+router.post('/case/:caseId/promote-extracted-bulk',
+    protect,
+    authorize('admin', 'attorney', 'consultant'),
+    body('events').isArray({ min: 1 }).withMessage('Provide at least one event to add'),
+    validate,
+    timelineController.promoteExtractedEventsBulk
+);
+
 // Get timelines by case
 router.get('/case/:caseId', protect, timelineController.getTimelinesByCase);
 

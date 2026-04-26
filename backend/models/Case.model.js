@@ -25,6 +25,10 @@ const caseSchema = new mongoose.Schema({
         type: mongoose.Schema.Types.ObjectId,
         ref: 'LawFirm'
     },
+    attorney: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User'
+    },
     assignedConsultant: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'User'
@@ -90,6 +94,7 @@ caseSchema.index({ caseName: 'text', description: 'text' });
 caseSchema.index({ status: 1 });
 caseSchema.index({ client: 1 });
 caseSchema.index({ lawFirm: 1 });
+caseSchema.index({ attorney: 1 });
 
 // Auto-generate case number
 caseSchema.pre('save', async function (next) {

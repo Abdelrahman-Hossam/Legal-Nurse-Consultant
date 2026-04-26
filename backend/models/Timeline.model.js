@@ -45,6 +45,12 @@ const timelineSchema = new mongoose.Schema({
             pageNumber: Number,
             excerpt: String
         }],
+        // Distinguishes user-typed events vs. events promoted from OCR / metadata.
+        eventSource: {
+            type: String,
+            enum: ['manual', 'medical_record', 'medical_record_edited'],
+            default: 'manual'
+        },
         significance: {
             type: String,
             enum: ['critical', 'important', 'routine', 'informational']
@@ -74,7 +80,11 @@ const timelineSchema = new mongoose.Schema({
         type: mongoose.Schema.Types.ObjectId,
         ref: 'User'
     },
-    reviewedAt: Date
+    reviewedAt: Date,
+    // Stable keys of auto-extracted events (from medical records) the user has hidden from the unified timeline.
+    dismissedExtractedKeys: [{
+        type: String
+    }]
 }, {
     timestamps: true
 });

@@ -11,6 +11,14 @@ import timelineService from '../../../services/timeline.service';
 import damagesService from '../../damages-tracking/services/damages.service';
 import CreateTaskModal from '../../task-workflow/components/CreateTaskModal';
 
+/** DD/MM/YYYY for case and medical chronology (avoids US-style M/D/YYYY from default locale). */
+const formatDateDMY = (dateLike) => {
+    if (dateLike == null || dateLike === '') return '';
+    const d = dateLike instanceof Date ? dateLike : new Date(dateLike);
+    if (Number.isNaN(d.getTime())) return '';
+    return d.toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' });
+};
+
 const CaseDetail = () => {
     const { id } = useParams();
     const { pathname } = useLocation();
@@ -29,7 +37,34 @@ const CaseDetail = () => {
     const [analysis, setAnalysis] = useState(null);
     const [timeline, setTimeline] = useState(null);
     const [timelineEvents, setTimelineEvents] = useState([]);
+    const [extractedEvents, setExtractedEvents] = useState([]);
+    const [timelineStats, setTimelineStats] = useState({
+        total: 0, manual: 0, extracted: 0, verified: 0, dismissed: 0
+    });
+    const [timelineFilter, setTimelineFilter] = useState('all'); // all | manual | medical | verified | dismissed
+    const [timelineActionKey, setTimelineActionKey] = useState(null);
     const [tabLoading, setTabLoading] = useState(false);
+
+    // Scan Records (per-record extraction) modal
+    const [showScanModal, setShowScanModal] = useState(false);
+    const [scanStep, setScanStep] = useState('pickRecord'); // pickRecord | reviewCandidates
+    const [scanRecordInfo, setScanRecordInfo] = useState(null);
+    const [scanCandidates, setScanCandidates] = useState([]);
+    const [scanSelectedKeys, setScanSelectedKeys] = useState(new Set());
+    const [scanLoading, setScanLoading] = useState(false);
+    const [scanSaving, setScanSaving] = useState(false);
+    const [scanError, setScanError] = useState('');
+    const [editingCandidateKey, setEditingCandidateKey] = useState(null);
+    const [editingForm, setEditingForm] = useState({ title: '', category: 'other', excerpt: '' });
+
+    // Inline edit (in the unified timeline list, before clicking "Add to Timeline")
+    const [editingExtractedKey, setEditingExtractedKey] = useState(null);
+    const [editingExtractedForm, setEditingExtractedForm] = useState({ title: '', category: 'other', excerpt: '' });
+
+    const TIMELINE_CATEGORY_OPTIONS = [
+        'treatment', 'medication', 'lab', 'imaging', 'consultation',
+        'procedure', 'symptom', 'other'
+    ];
 
     // Timeline Modal
     const [showAddTimelineEvent, setShowAddTimelineEvent] = useState(false);
@@ -189,21 +224,261 @@ const CaseDetail = () => {
 
     const fetchTimeline = async () => {
         try {
-            const response = await timelineService.getTimelinesByCase(id);
-            const timelines = response.data?.timelines || response.timelines || [];
-            if (timelines.length > 0) {
-                const tl = timelines[0];
-                setTimeline(tl);
-                setTimelineEvents(tl.events || []);
-            } else {
-                setTimeline(null);
-                setTimelineEvents([]);
-            }
+            const response = await timelineService.getUnifiedCaseTimeline(id);
+            const data = response.data || response;
+            setTimeline(data.timeline || null);
+            setTimelineEvents(data.events || []);
+            setExtractedEvents(data.extractedEvents || []);
+            setTimelineStats(data.stats || {
+                total: 0, manual: 0, extracted: 0, verified: 0, dismissed: 0
+            });
         } catch (error) {
             console.error('Failed to load timeline:', error);
             setTimeline(null);
             setTimelineEvents([]);
+            setExtractedEvents([]);
+            setTimelineStats({ total: 0, manual: 0, extracted: 0, verified: 0, dismissed: 0 });
         }
+    };
+
+    const applyUnifiedTimelineResponse = (response) => {
+        const data = response?.data || response;
+        if (!data) return;
+        if (data.events) setTimelineEvents(data.events);
+        if (data.extractedEvents) setExtractedEvents(data.extractedEvents);
+        if (data.stats) setTimelineStats(data.stats);
+    };
+
+    const handleDismissExtracted = async (eventKey) => {
+        if (!eventKey) return;
+        try {
+            setTimelineActionKey(eventKey);
+            const response = await timelineService.dismissExtractedEvent(id, eventKey);
+            applyUnifiedTimelineResponse(response);
+        } catch (error) {
+            console.error('Failed to dismiss extracted event:', error);
+            alert('Failed to dismiss event: ' + (error.response?.data?.message || error.message));
+        } finally {
+            setTimelineActionKey(null);
+        }
+    };
+
+    const handleRestoreExtracted = async (eventKey) => {
+        if (!eventKey) return;
+        try {
+            setTimelineActionKey(eventKey);
+            const response = await timelineService.restoreExtractedEvent(id, eventKey);
+            applyUnifiedTimelineResponse(response);
+        } catch (error) {
+            console.error('Failed to restore extracted event:', error);
+            alert('Failed to restore event: ' + (error.response?.data?.message || error.message));
+        } finally {
+            setTimelineActionKey(null);
+        }
+    };
+
+    const handlePromoteExtracted = async (event) => {
+        if (!event) return;
+        try {
+            setTimelineActionKey(event.key);
+            const response = await timelineService.promoteExtractedEvent(
+                id,
+                { ...event, eventSource: 'medical_record' },
+                true
+            );
+            applyUnifiedTimelineResponse(response);
+        } catch (error) {
+            console.error('Failed to add extracted event to timeline:', error);
+            alert('Failed to add event: ' + (error.response?.data?.message || error.message));
+        } finally {
+            setTimelineActionKey(null);
+        }
+    };
+
+    // ---- Inline edit on an extracted event in the unified timeline list ----
+    const startEditExtracted = (event) => {
+        if (!event) return;
+        setEditingExtractedKey(event.key);
+        setEditingExtractedForm({
+            title: event.title || '',
+            category: TIMELINE_CATEGORY_OPTIONS.includes(event.category) ? event.category : 'other',
+            excerpt: event.excerpt || ''
+        });
+    };
+
+    const cancelEditExtracted = () => {
+        setEditingExtractedKey(null);
+        setEditingExtractedForm({ title: '', category: 'other', excerpt: '' });
+    };
+
+    const saveAndAddExtracted = async (originalEvent) => {
+        if (!originalEvent || !editingExtractedKey) return;
+        const trimmedTitle = (editingExtractedForm.title || '').trim();
+        if (!trimmedTitle) {
+            alert('Title cannot be empty.');
+            return;
+        }
+        const editedEvent = {
+            ...originalEvent,
+            title: trimmedTitle,
+            category: editingExtractedForm.category || 'other',
+            excerpt: (editingExtractedForm.excerpt || '').trim(),
+            eventSource: 'medical_record_edited'
+        };
+        try {
+            setTimelineActionKey(originalEvent.key);
+            const response = await timelineService.promoteExtractedEvent(id, editedEvent, true);
+            applyUnifiedTimelineResponse(response);
+            cancelEditExtracted();
+        } catch (error) {
+            console.error('Failed to save edited extracted event:', error);
+            alert('Failed to save: ' + (error.response?.data?.message || error.message));
+        } finally {
+            setTimelineActionKey(null);
+        }
+    };
+
+    // ---- Scan Records flow (explicit per-record extraction) ----
+    const openScanModal = async () => {
+        setScanStep('pickRecord');
+        setScanRecordInfo(null);
+        setScanCandidates([]);
+        setScanSelectedKeys(new Set());
+        setScanError('');
+        setShowScanModal(true);
+        try {
+            await fetchMedicalRecords();
+        } catch (err) {
+            console.warn('Could not refresh medical records before scan', err);
+        }
+    };
+
+    const closeScanModal = () => {
+        setShowScanModal(false);
+        setScanStep('pickRecord');
+        setScanRecordInfo(null);
+        setScanCandidates([]);
+        setScanSelectedKeys(new Set());
+        setScanError('');
+        setScanLoading(false);
+        setScanSaving(false);
+        setEditingCandidateKey(null);
+        setEditingForm({ title: '', category: 'other', excerpt: '' });
+    };
+
+    const handlePickRecordToScan = async (recordId) => {
+        if (!recordId) return;
+        setScanLoading(true);
+        setScanError('');
+        try {
+            const response = await timelineService.scanRecord(id, recordId);
+            const data = response.data || response;
+            setScanRecordInfo(data.record || null);
+            const fresh = (data.candidates || []).filter((c) => !c.isDismissed);
+            setScanCandidates(fresh);
+            setScanSelectedKeys(new Set(fresh.map((c) => c.key)));
+            setScanStep('reviewCandidates');
+        } catch (error) {
+            console.error('Failed to scan record:', error);
+            setScanError(error.response?.data?.message || error.message || 'Failed to scan record');
+        } finally {
+            setScanLoading(false);
+        }
+    };
+
+    const toggleScanSelection = (key) => {
+        setScanSelectedKeys((prev) => {
+            const next = new Set(prev);
+            if (next.has(key)) next.delete(key);
+            else next.add(key);
+            return next;
+        });
+    };
+
+    const setAllScanSelections = (selectAll) => {
+        if (selectAll) {
+            setScanSelectedKeys(new Set(scanCandidates.map((c) => c.key)));
+        } else {
+            setScanSelectedKeys(new Set());
+        }
+    };
+
+    const handleBackToRecordList = () => {
+        setScanStep('pickRecord');
+        setScanRecordInfo(null);
+        setScanCandidates([]);
+        setScanSelectedKeys(new Set());
+        setScanError('');
+        setEditingCandidateKey(null);
+        setEditingForm({ title: '', category: 'other', excerpt: '' });
+    };
+
+    const handleSaveScannedEvents = async () => {
+        const selected = scanCandidates.filter((c) => scanSelectedKeys.has(c.key));
+        if (selected.length === 0) {
+            setScanError('Pick at least one date to add to the timeline.');
+            return;
+        }
+        setScanSaving(true);
+        setScanError('');
+        try {
+            const payload = selected.map((c) => ({
+                ...c,
+                eventSource: c.scanEdited ? 'medical_record_edited' : 'medical_record'
+            }));
+            const response = await timelineService.promoteExtractedEventsBulk(id, payload, true);
+            applyUnifiedTimelineResponse(response);
+            await fetchTimeline();
+            closeScanModal();
+        } catch (error) {
+            console.error('Failed to save scanned events:', error);
+            setScanError(error.response?.data?.message || error.message || 'Failed to save events');
+        } finally {
+            setScanSaving(false);
+        }
+    };
+
+    const startEditCandidate = (candidate) => {
+        if (!candidate) return;
+        setEditingCandidateKey(candidate.key);
+        setEditingForm({
+            title: candidate.title || '',
+            category: TIMELINE_CATEGORY_OPTIONS.includes(candidate.category)
+                ? candidate.category
+                : 'other',
+            excerpt: candidate.excerpt || ''
+        });
+    };
+
+    const cancelEditCandidate = () => {
+        setEditingCandidateKey(null);
+        setEditingForm({ title: '', category: 'other', excerpt: '' });
+    };
+
+    const saveEditCandidate = () => {
+        if (!editingCandidateKey) return;
+        const trimmedTitle = (editingForm.title || '').trim();
+        if (!trimmedTitle) {
+            setScanError('Title cannot be empty.');
+            return;
+        }
+        setScanCandidates((prev) => prev.map((c) =>
+            c.key === editingCandidateKey
+                ? {
+                    ...c,
+                    title: trimmedTitle,
+                    category: editingForm.category || 'other',
+                    excerpt: (editingForm.excerpt || '').trim()
+                }
+                : c
+        ));
+        setScanSelectedKeys((prev) => {
+            const next = new Set(prev);
+            next.add(editingCandidateKey);
+            return next;
+        });
+        setScanError('');
+        cancelEditCandidate();
     };
 
     const fetchCaseDetails = async () => {
@@ -298,8 +573,8 @@ const CaseDetail = () => {
                 client: caseData.client?.fullName || 'N/A',
                 lawFirm: caseData.lawFirm?.firmName || 'N/A',
                 assignedConsultant: caseData.assignedConsultant?.fullName || 'N/A',
-                incidentDate: caseData.incidentDate ? new Date(caseData.incidentDate).toLocaleDateString() : 'N/A',
-                filingDate: caseData.filingDate ? new Date(caseData.filingDate).toLocaleDateString() : 'N/A',
+                incidentDate: caseData.incidentDate ? formatDateDMY(caseData.incidentDate) : 'N/A',
+                filingDate: caseData.filingDate ? formatDateDMY(caseData.filingDate) : 'N/A',
                 description: caseData.description || 'N/A',
                 allegations: caseData.allegations || [],
                 damages: caseData.damages || {},
@@ -350,7 +625,7 @@ const CaseDetail = () => {
                 reportText += `TIMELINE\n`;
                 reportText += `${'-'.repeat(80)}\n`;
                 reportData.timeline.forEach((event, index) => {
-                    reportText += `${index + 1}. ${new Date(event.date).toLocaleDateString()} - ${event.event}\n`;
+                    reportText += `${index + 1}. ${formatDateDMY(event.date)} - ${event.event}\n`;
                     if (event.description) reportText += `   ${event.description}\n`;
                 });
                 reportText += `\n`;
@@ -589,24 +864,20 @@ const CaseDetail = () => {
     // Timeline handlers
     const handleAddTimelineEvent = async (eventData) => {
         try {
-            if (!timeline) {
-                // Create timeline first
+            let timelineId = timeline?._id;
+            if (!timelineId) {
                 const tlResponse = await timelineService.createTimeline({
                     case: id,
-                    title: 'Medical Timeline',
+                    title: 'Case Timeline',
                     status: 'in-progress'
                 });
-                setTimeline(tlResponse.data.timeline);
-
-                // Then add event
-                await timelineService.addEvent(tlResponse.data.timeline._id, eventData);
-            } else {
-                await timelineService.addEvent(timeline._id, eventData);
+                timelineId = tlResponse.data?.timeline?._id || tlResponse.timeline?._id;
             }
 
-            fetchTimeline();
+            await timelineService.addEvent(timelineId, eventData);
+
+            await fetchTimeline();
             setShowAddTimelineEvent(false);
-            alert('Event added successfully');
         } catch (error) {
             console.error('Error adding timeline event:', error);
             alert('Failed to add event. Please try again.');
@@ -693,7 +964,7 @@ const CaseDetail = () => {
 
             sortedTimeline.forEach((event, index) => {
                 const eventDate = new Date(event.date);
-                timelineText += `${index + 1}. ${eventDate.toLocaleDateString()} - ${eventDate.toLocaleTimeString()}\n`;
+                timelineText += `${index + 1}. ${formatDateDMY(eventDate)} - ${eventDate.toLocaleTimeString()}\n`;
                 timelineText += `   Event: ${event.event}\n`;
                 if (event.description) {
                     timelineText += `   Description: ${event.description}\n`;
@@ -706,7 +977,7 @@ const CaseDetail = () => {
 
             timelineText += `${'-'.repeat(80)}\n`;
             timelineText += `Total Events: ${sortedTimeline.length}\n`;
-            timelineText += `Date Range: ${new Date(sortedTimeline[0].date).toLocaleDateString()} to ${new Date(sortedTimeline[sortedTimeline.length - 1].date).toLocaleDateString()}\n`;
+            timelineText += `Date Range: ${formatDateDMY(sortedTimeline[0].date)} to ${formatDateDMY(sortedTimeline[sortedTimeline.length - 1].date)}\n`;
 
             // Create and download the file
             const blob = new Blob([timelineText], { type: 'text/plain' });
@@ -983,7 +1254,7 @@ const CaseDetail = () => {
                                                     <td className="px-6 py-4 text-sm capitalize">{record.documentType || record.fileType}</td>
                                                     <td className="px-6 py-4 text-sm">{record.provider?.name || 'N/A'}</td>
                                                     <td className="px-6 py-4 text-sm">
-                                                        {record.recordDate ? new Date(record.recordDate).toLocaleDateString() : new Date(record.createdAt).toLocaleDateString()}
+                                                        {record.recordDate ? formatDateDMY(record.recordDate) : formatDateDMY(record.createdAt)}
                                                     </td>
                                                     <td className="px-6 py-4">
                                                         <span className={`px-2 py-1 rounded-full text-xs font-bold ${record.ocrStatus === 'completed' ? 'bg-green-100 text-green-700' :
@@ -1025,74 +1296,304 @@ const CaseDetail = () => {
                         )}
                     </div>
                 )}
-                {activeTab === 'timeline' && (
-                    <div>
-                        <div className="flex items-center justify-between mb-6">
-                            <h3 className="text-lg font-semibold text-slate-900 dark:text-white">Timeline</h3>
-                            <button
-                                onClick={() => setShowAddTimelineEvent(true)}
-                                className="flex items-center gap-2 px-4 py-2 bg-[#801829] text-white rounded-lg hover:bg-[#60121f] transition-colors"
-                            >
-                                <span className="material-icons text-sm">add</span>
-                                Add Event
-                            </button>
-                        </div>
-                        {tabLoading ? (
-                            <div className="flex items-center justify-center py-12">
-                                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#801829]"></div>
+                {activeTab === 'timeline' && (() => {
+                    const filteredVisible = timelineEvents.filter((e) => {
+                        if (timelineFilter === 'manual') return e.sourceType === 'manual';
+                        if (timelineFilter === 'medical') return e.sourceType === 'medical_record';
+                        if (timelineFilter === 'verified') return e.isVerified;
+                        return true;
+                    });
+                    const dismissedList = extractedEvents.filter((e) => e.isDismissed);
+                    const showDismissed = timelineFilter === 'dismissed';
+                    const categoryBadgeColor = (cat) => ({
+                        treatment: 'bg-blue-100 text-blue-800',
+                        medication: 'bg-purple-100 text-purple-800',
+                        lab: 'bg-green-100 text-green-800',
+                        imaging: 'bg-yellow-100 text-yellow-800',
+                        consultation: 'bg-pink-100 text-pink-800',
+                        procedure: 'bg-red-100 text-red-800',
+                        admission: 'bg-indigo-100 text-indigo-800',
+                        discharge: 'bg-teal-100 text-teal-800',
+                        symptom: 'bg-orange-100 text-orange-800'
+                    })[cat] || 'bg-gray-100 text-gray-800';
+                    const confidenceBadgeColor = (c) => ({
+                        verified: 'bg-emerald-100 text-emerald-700 border-emerald-200',
+                        high: 'bg-emerald-50 text-emerald-700 border-emerald-200',
+                        medium: 'bg-amber-50 text-amber-700 border-amber-200',
+                        low: 'bg-slate-100 text-slate-600 border-slate-200'
+                    })[c] || 'bg-slate-100 text-slate-600 border-slate-200';
+                    const filterTabs = [
+                        { id: 'all', label: 'All', count: timelineStats.total },
+                        { id: 'medical', label: 'Medical Records', count: timelineStats.extracted },
+                        { id: 'manual', label: 'Manual', count: timelineStats.manual },
+                        { id: 'verified', label: 'Verified', count: timelineStats.verified ?? timelineStats.manual },
+                        { id: 'dismissed', label: 'Dismissed', count: timelineStats.dismissed }
+                    ];
+
+                    return (
+                        <div>
+                            <div className="flex items-start justify-between mb-4 flex-wrap gap-3">
+                                <div>
+                                    <h3 className="text-lg font-semibold text-slate-900 dark:text-white">Case Timeline</h3>
+                                    <p className="text-xs text-slate-500 mt-1">
+                                        Unified chronology built from manually added events and dates extracted from uploaded medical records.
+                                    </p>
+                                </div>
+                                <div className="flex gap-2">
+                                    <button
+                                        onClick={openScanModal}
+                                        className="flex items-center gap-2 px-3 py-2 border border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-200 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"
+                                        title="Pick a medical record to scan for dates"
+                                    >
+                                        <span className="material-icons text-sm">document_scanner</span>
+                                        Scan Records
+                                    </button>
+                                    <button
+                                        onClick={() => fetchTimeline()}
+                                        className="flex items-center gap-2 px-3 py-2 border border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-200 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"
+                                        title="Refresh the unified timeline"
+                                    >
+                                        <span className="material-icons text-sm">autorenew</span>
+                                        Refresh
+                                    </button>
+                                    <button
+                                        onClick={() => setShowAddTimelineEvent(true)}
+                                        className="flex items-center gap-2 px-4 py-2 bg-[#801829] text-white rounded-lg hover:bg-[#60121f] transition-colors"
+                                    >
+                                        <span className="material-icons text-sm">add</span>
+                                        Add Event
+                                    </button>
+                                </div>
                             </div>
-                        ) : timelineEvents.length > 0 ? (
-                            <div className="bg-[#e4dace] dark:bg-slate-900 rounded-xl border-2 border-slate-200 dark:border-slate-700 shadow-md p-6">
-                                <div className="relative space-y-4">
-                                    {timelineEvents.sort((a, b) => new Date(a.date) - new Date(b.date)).map((event, idx) => (
-                                        <div key={event._id || idx} className="relative pl-8 pb-8 border-l-4 border-[#801829] last:pb-0">
-                                            <div className="absolute -left-2 top-0 w-4 h-4 rounded-full bg-[#801829] border-4 border-white dark:border-slate-900"></div>
-                                            <div className="bg-[#e4dace] dark:bg-slate-800 rounded-lg p-4 ml-4 hover:shadow-md transition-shadow">
-                                                <div className="flex items-start justify-between mb-2">
-                                                    <div className="flex-1">
-                                                        <div className="flex items-center gap-2 mb-1">
-                                                            <span className={`px-2 py-1 rounded text-xs font-bold capitalize ${event.category === 'treatment' ? 'bg-blue-100 text-blue-800' :
-                                                                event.category === 'medication' ? 'bg-purple-100 text-purple-800' :
-                                                                    event.category === 'lab' ? 'bg-green-100 text-green-800' :
-                                                                        event.category === 'imaging' ? 'bg-yellow-100 text-yellow-800' :
-                                                                            event.category === 'consultation' ? 'bg-pink-100 text-pink-800' :
-                                                                                event.category === 'procedure' ? 'bg-red-100 text-red-800' :
-                                                                                    'bg-gray-100 text-gray-800'
-                                                                }`}>
+
+                            <div className="flex flex-wrap gap-2 mb-6">
+                                {filterTabs.map((tab) => (
+                                    <button
+                                        key={tab.id}
+                                        onClick={() => setTimelineFilter(tab.id)}
+                                        className={`px-3 py-1.5 rounded-full text-xs font-semibold border transition-colors ${timelineFilter === tab.id
+                                            ? 'bg-[#801829] text-white border-[#801829]'
+                                            : 'bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 border-slate-300 dark:border-slate-600 hover:border-[#801829]'
+                                            }`}
+                                    >
+                                        {tab.label}
+                                        <span className={`ml-2 inline-flex items-center justify-center min-w-[1.25rem] px-1 rounded-full text-[10px] ${timelineFilter === tab.id ? 'bg-white/20 text-white' : 'bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-200'}`}>
+                                            {tab.count}
+                                        </span>
+                                    </button>
+                                ))}
+                            </div>
+
+                            {tabLoading ? (
+                                <div className="flex items-center justify-center py-12">
+                                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#801829]"></div>
+                                </div>
+                            ) : showDismissed ? (
+                                dismissedList.length > 0 ? (
+                                    <div className="bg-[#e4dace] dark:bg-slate-900 rounded-xl border-2 border-slate-200 dark:border-slate-700 shadow-md p-6 space-y-3">
+                                        {dismissedList.map((event) => (
+                                            <div key={event.key} className="bg-[#f3efe5] dark:bg-slate-800 rounded-lg p-4 flex items-start justify-between gap-4">
+                                                <div>
+                                                    <div className="flex items-center gap-2 mb-1">
+                                                        <span className={`px-2 py-1 rounded text-xs font-bold capitalize ${categoryBadgeColor(event.category)}`}>
+                                                            {event.category}
+                                                        </span>
+                                                        <span className="text-xs text-slate-500 font-medium">
+                                                            {formatDateDMY(event.eventDate)}
+                                                        </span>
+                                                    </div>
+                                                    <h4 className="text-sm font-bold text-slate-900 dark:text-white">{event.title}</h4>
+                                                    {event.excerpt && (
+                                                        <p className="text-xs text-slate-500 italic mt-1">"{event.excerpt}"</p>
+                                                    )}
+                                                </div>
+                                                <button
+                                                    disabled={timelineActionKey === event.key}
+                                                    onClick={() => handleRestoreExtracted(event.key)}
+                                                    className="text-xs font-semibold text-[#801829] hover:underline whitespace-nowrap disabled:opacity-60"
+                                                >
+                                                    {timelineActionKey === event.key ? 'Restoring…' : 'Restore'}
+                                                </button>
+                                            </div>
+                                        ))}
+                                    </div>
+                                ) : (
+                                    <div className="bg-[#e4dace] dark:bg-slate-900 rounded-xl border-2 border-slate-200 dark:border-slate-700 shadow-md p-12 text-center text-slate-500">
+                                        No dismissed events.
+                                    </div>
+                                )
+                            ) : filteredVisible.length > 0 ? (
+                                <div className="bg-[#e4dace] dark:bg-slate-900 rounded-xl border-2 border-slate-200 dark:border-slate-700 shadow-md p-6">
+                                    <div className="relative space-y-4">
+                                        {filteredVisible.map((event, idx) => {
+                                            const isMedicalLineage = event.sourceType === 'medical_record';
+                                            const isPureManual = event.sourceType === 'manual';
+                                            const isPendingExtract = isMedicalLineage && !event.isVerified;
+                                            const dotClass = isMedicalLineage ? 'bg-amber-500' : 'bg-[#801829]';
+                                            const lineClass = isMedicalLineage ? 'border-amber-300' : 'border-[#801829]';
+                                            const isInlineEditing = isPendingExtract && editingExtractedKey === event.key;
+                                            const sourceBadgeText = isPureManual
+                                                ? 'Manual'
+                                                : (event.eventSource === 'medical_record_edited'
+                                                    ? 'Medical Record (edited)'
+                                                    : 'Medical Record');
+                                            const showSourceLine = isMedicalLineage && Boolean(event.sourceLabel);
+                                            return (
+                                                <div key={event.key || event.id || idx} className={`relative pl-8 pb-8 border-l-4 ${lineClass} last:pb-0`}>
+                                                    <div className={`absolute -left-2 top-0 w-4 h-4 rounded-full ${dotClass} border-4 border-white dark:border-slate-900`}></div>
+                                                    <div className={`bg-[#f3efe5] dark:bg-slate-800 rounded-lg p-4 ml-4 hover:shadow-md transition-shadow ${isInlineEditing ? 'ring-2 ring-[#801829]' : ''}`}>
+                                                        <div className="flex flex-wrap items-center gap-2 mb-1">
+                                                            <span className={`px-2 py-1 rounded text-xs font-bold capitalize ${categoryBadgeColor(event.category)}`}>
                                                                 {event.category}
                                                             </span>
+                                                            <span className={`px-2 py-0.5 rounded-full text-[10px] font-semibold border tracking-wide ${isMedicalLineage ? 'bg-amber-50 text-amber-700 border-amber-200' : 'bg-[#801829]/10 text-[#801829] border-[#801829]/20'}`}>
+                                                                {sourceBadgeText}
+                                                            </span>
+                                                            <span className={`px-2 py-0.5 rounded-full text-[10px] font-semibold border ${confidenceBadgeColor(event.confidence)}`}>
+                                                                {event.confidence === 'verified' ? 'Verified' : `${event.confidence} confidence`}
+                                                            </span>
                                                             <span className="text-xs text-slate-500 font-medium">
-                                                                {new Date(event.date).toLocaleDateString()}
+                                                                {formatDateDMY(event.eventDate)}
                                                                 {event.time && ` at ${event.time}`}
                                                             </span>
                                                         </div>
-                                                        <h4 className="text-sm font-bold text-slate-900 dark:text-white">{event.title}</h4>
-                                                        {event.description && (
-                                                            <p className="text-sm text-slate-600 dark:text-slate-400 mt-1">{event.description}</p>
+
+                                                        {isInlineEditing ? (
+                                                            <div className="space-y-3 mt-2">
+                                                                <div>
+                                                                    <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Title</label>
+                                                                    <input
+                                                                        type="text"
+                                                                        value={editingExtractedForm.title}
+                                                                        onChange={(e) => setEditingExtractedForm((f) => ({ ...f, title: e.target.value }))}
+                                                                        className="w-full px-3 py-2 text-sm border border-slate-300 dark:border-slate-600 rounded-md bg-white dark:bg-slate-900 focus:outline-none focus:ring-2 focus:ring-[#801829]"
+                                                                        placeholder="e.g., Surgery preparation"
+                                                                    />
+                                                                </div>
+                                                                <div>
+                                                                    <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Category</label>
+                                                                    <select
+                                                                        value={editingExtractedForm.category}
+                                                                        onChange={(e) => setEditingExtractedForm((f) => ({ ...f, category: e.target.value }))}
+                                                                        className="w-full px-3 py-2 text-sm border border-slate-300 dark:border-slate-600 rounded-md bg-white dark:bg-slate-900 focus:outline-none focus:ring-2 focus:ring-[#801829] capitalize"
+                                                                    >
+                                                                        {TIMELINE_CATEGORY_OPTIONS.map((cat) => (
+                                                                            <option key={cat} value={cat} className="capitalize">{cat}</option>
+                                                                        ))}
+                                                                    </select>
+                                                                </div>
+                                                                <div>
+                                                                    <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">OCR text / notes</label>
+                                                                    <textarea
+                                                                        rows={3}
+                                                                        value={editingExtractedForm.excerpt}
+                                                                        onChange={(e) => setEditingExtractedForm((f) => ({ ...f, excerpt: e.target.value }))}
+                                                                        className="w-full px-3 py-2 text-sm border border-slate-300 dark:border-slate-600 rounded-md bg-white dark:bg-slate-900 focus:outline-none focus:ring-2 focus:ring-[#801829] font-mono"
+                                                                        placeholder="Rewrite the extracted text into a clearer version…"
+                                                                    />
+                                                                </div>
+                                                                {showSourceLine && (
+                                                                    <div className="text-xs text-slate-500 flex items-center gap-1">
+                                                                        <span className="material-icons text-sm">description</span>
+                                                                        <span className="font-medium">Source:</span>
+                                                                        <span>{event.sourceLabel}</span>
+                                                                    </div>
+                                                                )}
+                                                            </div>
+                                                        ) : (
+                                                            <>
+                                                                <h4 className="text-sm font-bold text-slate-900 dark:text-white">{event.title}</h4>
+                                                                {event.description && (
+                                                                    <p className="text-sm text-slate-600 dark:text-slate-400 mt-1">{event.description}</p>
+                                                                )}
+                                                                {event.excerpt && (
+                                                                    <p className="text-xs italic text-slate-500 mt-2 whitespace-pre-wrap">"{event.excerpt}"</p>
+                                                                )}
+                                                                {(event.provider?.name || event.provider?.facility) && (
+                                                                    <div className="mt-2 text-xs text-slate-500">
+                                                                        {event.provider.name && <span>Provider: {event.provider.name}</span>}
+                                                                        {event.provider.facility && <span> • Facility: {event.provider.facility}</span>}
+                                                                    </div>
+                                                                )}
+                                                                {showSourceLine && (
+                                                                    <div className="mt-2 text-xs text-slate-500 flex items-center gap-1">
+                                                                        <span className="material-icons text-sm">description</span>
+                                                                        <span className="font-medium">Source:</span>
+                                                                        <span>{event.sourceLabel}</span>
+                                                                    </div>
+                                                                )}
+                                                            </>
                                                         )}
-                                                        {(event.provider?.name || event.provider?.facility) && (
-                                                            <div className="mt-2 text-xs text-slate-500">
-                                                                {event.provider.name && <span>Provider: {event.provider.name}</span>}
-                                                                {event.provider.facility && <span> • Facility: {event.provider.facility}</span>}
+
+                                                        {isPendingExtract && isInlineEditing && (
+                                                            <div className="mt-3 flex flex-wrap gap-2">
+                                                                <button
+                                                                    disabled={timelineActionKey === event.key}
+                                                                    onClick={() => saveAndAddExtracted(event)}
+                                                                    className="px-3 py-1.5 bg-[#801829] text-white rounded-md text-xs font-semibold hover:bg-[#60121f] transition-colors flex items-center gap-1 disabled:opacity-60"
+                                                                >
+                                                                    <span className="material-icons text-sm">check_circle</span>
+                                                                    {timelineActionKey === event.key ? 'Saving…' : 'Save & Add to Timeline'}
+                                                                </button>
+                                                                <button
+                                                                    disabled={timelineActionKey === event.key}
+                                                                    onClick={cancelEditExtracted}
+                                                                    className="px-3 py-1.5 border border-slate-300 dark:border-slate-600 text-slate-600 dark:text-slate-300 rounded-md text-xs font-semibold hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors flex items-center gap-1 disabled:opacity-60"
+                                                                >
+                                                                    <span className="material-icons text-sm">close</span>
+                                                                    Cancel
+                                                                </button>
+                                                            </div>
+                                                        )}
+
+                                                        {isPendingExtract && !isInlineEditing && (
+                                                            <div className="mt-3 flex flex-wrap gap-2">
+                                                                <button
+                                                                    disabled={timelineActionKey === event.key || !!editingExtractedKey}
+                                                                    onClick={() => handlePromoteExtracted(event)}
+                                                                    className="px-3 py-1.5 bg-[#801829] text-white rounded-md text-xs font-semibold hover:bg-[#60121f] transition-colors flex items-center gap-1 disabled:opacity-60"
+                                                                >
+                                                                    <span className="material-icons text-sm">check_circle</span>
+                                                                    {timelineActionKey === event.key ? 'Adding…' : 'Add to Timeline'}
+                                                                </button>
+                                                                <button
+                                                                    disabled={timelineActionKey === event.key || !!editingExtractedKey}
+                                                                    onClick={() => startEditExtracted(event)}
+                                                                    className="px-3 py-1.5 border border-slate-300 dark:border-slate-600 text-slate-600 dark:text-slate-300 rounded-md text-xs font-semibold hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors flex items-center gap-1 disabled:opacity-60"
+                                                                >
+                                                                    <span className="material-icons text-sm">edit</span>
+                                                                    Edit
+                                                                </button>
+                                                                <button
+                                                                    disabled={timelineActionKey === event.key || !!editingExtractedKey}
+                                                                    onClick={() => handleDismissExtracted(event.key)}
+                                                                    className="px-3 py-1.5 border border-slate-300 dark:border-slate-600 text-slate-600 dark:text-slate-300 rounded-md text-xs font-semibold hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors flex items-center gap-1 disabled:opacity-60"
+                                                                >
+                                                                    <span className="material-icons text-sm">close</span>
+                                                                    Dismiss
+                                                                </button>
                                                             </div>
                                                         )}
                                                     </div>
                                                 </div>
-                                            </div>
-                                        </div>
-                                    ))}
+                                            );
+                                        })}
+                                    </div>
                                 </div>
-                            </div>
-                        ) : (
-                            <div className="bg-[#e4dace] dark:bg-slate-900 rounded-xl border-2 border-slate-200 dark:border-slate-700 shadow-md p-12">
-                                <div className="text-center text-slate-500">
-                                    <span className="material-icons text-6xl text-slate-300 mb-4">timeline</span>
-                                    <p>No timeline events yet. Add an event to get started.</p>
+                            ) : (
+                                <div className="bg-[#e4dace] dark:bg-slate-900 rounded-xl border-2 border-slate-200 dark:border-slate-700 shadow-md p-12">
+                                    <div className="text-center text-slate-500">
+                                        <span className="material-icons text-6xl text-slate-300 mb-4">timeline</span>
+                                        <p>No timeline events match this filter yet.</p>
+                                        <p className="text-xs mt-2">
+                                            Upload medical records or add manual events to start building the case chronology.
+                                        </p>
+                                    </div>
                                 </div>
-                            </div>
-                        )}
-                    </div>
-                )}
+                            )}
+                        </div>
+                    );
+                })()}
                 {activeTab === 'analysis' && (
                     <div>
                         <div className="flex items-center justify-between mb-6">
@@ -1952,6 +2453,344 @@ const CaseDetail = () => {
                                         </li>
                                     ))}
                                 </ul>
+                            )}
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Scan Records modal — explicit per-record extraction */}
+            {showScanModal && (
+                <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-[60] p-4">
+                    <div className="bg-white dark:bg-slate-900 rounded-xl shadow-2xl max-w-3xl w-full max-h-[90vh] flex flex-col overflow-hidden border border-slate-200 dark:border-slate-700">
+                        {/* Header */}
+                        <div className="px-5 py-4 border-b border-slate-200 dark:border-slate-700 flex items-center justify-between shrink-0">
+                            <div className="flex items-center gap-3">
+                                {scanStep === 'reviewCandidates' && (
+                                    <button
+                                        type="button"
+                                        onClick={handleBackToRecordList}
+                                        className="p-1.5 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors"
+                                        aria-label="Back"
+                                    >
+                                        <span className="material-icons text-slate-500 text-xl">arrow_back</span>
+                                    </button>
+                                )}
+                                <div>
+                                    <h3 className="text-lg font-bold text-slate-900 dark:text-white">
+                                        {scanStep === 'pickRecord' ? 'Scan Medical Records' : 'Review Detected Dates'}
+                                    </h3>
+                                    <p className="text-xs text-slate-500 mt-0.5">
+                                        {scanStep === 'pickRecord'
+                                            ? 'Pick a medical record to scan for dates and tied actions.'
+                                            : `From ${scanRecordInfo?.fileName || 'record'} — pick which dates to add to the timeline.`}
+                                    </p>
+                                </div>
+                            </div>
+                            <button
+                                type="button"
+                                onClick={closeScanModal}
+                                className="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors"
+                                aria-label="Close"
+                            >
+                                <span className="material-icons text-slate-500">close</span>
+                            </button>
+                        </div>
+
+                        {/* Body */}
+                        <div className="p-5 overflow-y-auto flex-1">
+                            {scanError && (
+                                <div className="mb-4 p-3 rounded-lg bg-red-50 border border-red-200 text-red-700 text-sm">
+                                    {scanError}
+                                </div>
+                            )}
+
+                            {scanStep === 'pickRecord' && (
+                                <>
+                                    {(!medicalRecords || medicalRecords.length === 0) ? (
+                                        <div className="text-center py-12">
+                                            <span className="material-icons text-5xl text-slate-300">folder_off</span>
+                                            <p className="mt-2 text-slate-600 dark:text-slate-300 font-semibold">No medical records yet</p>
+                                            <p className="text-sm text-slate-500 mt-1">Upload a medical record first, then come back to scan it.</p>
+                                        </div>
+                                    ) : (
+                                        <ul className="divide-y divide-slate-100 dark:divide-slate-800">
+                                            {medicalRecords.map((rec) => {
+                                                const status = rec.ocrStatus || 'pending';
+                                                const statusBadge = ({
+                                                    completed: 'bg-emerald-50 text-emerald-700 border-emerald-200',
+                                                    processing: 'bg-blue-50 text-blue-700 border-blue-200',
+                                                    pending: 'bg-amber-50 text-amber-700 border-amber-200',
+                                                    failed: 'bg-red-50 text-red-700 border-red-200'
+                                                })[status] || 'bg-slate-100 text-slate-600 border-slate-200';
+                                                const recId = rec._id || rec.id;
+                                                const isLoadingThis = scanLoading && scanRecordInfo?._id === recId;
+                                                return (
+                                                    <li key={recId} className="py-3 flex items-center justify-between gap-3 first:pt-0">
+                                                        <div className="min-w-0 flex items-start gap-3">
+                                                            <span className="material-icons text-slate-400 mt-0.5">description</span>
+                                                            <div className="min-w-0">
+                                                                <p className="text-sm font-semibold text-slate-900 dark:text-white truncate">
+                                                                    {rec.fileName || 'Untitled record'}
+                                                                </p>
+                                                                <div className="flex flex-wrap items-center gap-2 mt-1">
+                                                                    {rec.documentType && (
+                                                                        <span className="text-[10px] uppercase tracking-wider font-semibold text-slate-500">
+                                                                            {rec.documentType}
+                                                                        </span>
+                                                                    )}
+                                                                    <span className={`px-2 py-0.5 rounded-full text-[10px] font-semibold border capitalize ${statusBadge}`}>
+                                                                        OCR: {status}
+                                                                    </span>
+                                                                    {rec.recordDate && (
+                                                                        <span className="text-[11px] text-slate-500">
+                                                                            Record date: {formatDateDMY(rec.recordDate)}
+                                                                        </span>
+                                                                    )}
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                        <button
+                                                            type="button"
+                                                            disabled={scanLoading}
+                                                            onClick={() => handlePickRecordToScan(recId)}
+                                                            className="shrink-0 px-3 py-1.5 text-xs font-semibold rounded-lg bg-[#801829] text-white hover:bg-[#60121f] disabled:opacity-60 transition-colors flex items-center gap-1"
+                                                        >
+                                                            <span className="material-icons text-sm">document_scanner</span>
+                                                            {isLoadingThis ? 'Scanning…' : 'Scan'}
+                                                        </button>
+                                                    </li>
+                                                );
+                                            })}
+                                        </ul>
+                                    )}
+                                </>
+                            )}
+
+                            {scanStep === 'reviewCandidates' && (
+                                <>
+                                    {scanRecordInfo && (
+                                        <div className="mb-4 p-3 rounded-lg bg-[#f3efe5] dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs text-slate-600 dark:text-slate-300 flex flex-wrap gap-x-4 gap-y-1">
+                                            <span><strong>File:</strong> {scanRecordInfo.fileName}</span>
+                                            <span><strong>OCR:</strong> {scanRecordInfo.ocrStatus || 'pending'}</span>
+                                            {scanRecordInfo.recordDate && (
+                                                <span><strong>Record date:</strong> {formatDateDMY(scanRecordInfo.recordDate)}</span>
+                                            )}
+                                            {scanRecordInfo.dateOfService && (
+                                                <span><strong>Service date:</strong> {formatDateDMY(scanRecordInfo.dateOfService)}</span>
+                                            )}
+                                        </div>
+                                    )}
+
+                                    {scanCandidates.length === 0 ? (
+                                        <div className="text-center py-10">
+                                            <span className="material-icons text-5xl text-slate-300">search_off</span>
+                                            <p className="mt-2 text-slate-700 dark:text-slate-200 font-semibold">No dates detected in this record</p>
+                                            <p className="text-sm text-slate-500 mt-1 max-w-md mx-auto">
+                                                {scanRecordInfo && !scanRecordInfo.hasOcrText
+                                                    ? `OCR is "${scanRecordInfo.ocrStatus || 'pending'}". Wait a moment for processing to finish, then scan again.`
+                                                    : 'The document text didn\'t contain any clearly formatted dates. You can still add events manually.'}
+                                            </p>
+                                        </div>
+                                    ) : (
+                                        <>
+                                            <div className="flex items-center justify-between mb-3">
+                                                <p className="text-xs text-slate-500">
+                                                    {scanSelectedKeys.size} of {scanCandidates.length} selected
+                                                </p>
+                                                <div className="flex gap-2">
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => setAllScanSelections(true)}
+                                                        className="text-xs font-semibold text-[#801829] hover:underline"
+                                                    >
+                                                        Select all
+                                                    </button>
+                                                    <span className="text-slate-300">|</span>
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => setAllScanSelections(false)}
+                                                        className="text-xs font-semibold text-slate-500 hover:underline"
+                                                    >
+                                                        Clear
+                                                    </button>
+                                                </div>
+                                            </div>
+
+                                            <ul className="space-y-2">
+                                                {scanCandidates.map((c) => {
+                                                    const checked = scanSelectedKeys.has(c.key);
+                                                    const isEditing = editingCandidateKey === c.key;
+
+                                                    if (isEditing) {
+                                                        return (
+                                                            <li
+                                                                key={c.key}
+                                                                className="p-4 rounded-lg border-2 border-[#801829] bg-[#801829]/5"
+                                                            >
+                                                                <div className="flex items-center justify-between mb-3">
+                                                                    <div className="flex items-center gap-2">
+                                                                        <span className="material-icons text-sm text-[#801829]">edit</span>
+                                                                        <span className="text-xs font-bold text-slate-900 dark:text-white">
+                                                                            Editing — {formatDateDMY(c.eventDate)}
+                                                                        </span>
+                                                                    </div>
+                                                                    <span className="text-[10px] text-slate-500">Date is fixed</span>
+                                                                </div>
+
+                                                                <div className="space-y-3">
+                                                                    <div>
+                                                                        <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                                                                            Title
+                                                                        </label>
+                                                                        <input
+                                                                            type="text"
+                                                                            value={editingForm.title}
+                                                                            onChange={(e) => setEditingForm((f) => ({ ...f, title: e.target.value }))}
+                                                                            className="w-full px-3 py-2 text-sm border border-slate-300 dark:border-slate-600 rounded-md bg-white dark:bg-slate-900 focus:outline-none focus:ring-2 focus:ring-[#801829]"
+                                                                            placeholder="e.g., Surgery preparation"
+                                                                        />
+                                                                    </div>
+
+                                                                    <div>
+                                                                        <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                                                                            Category
+                                                                        </label>
+                                                                        <select
+                                                                            value={editingForm.category}
+                                                                            onChange={(e) => setEditingForm((f) => ({ ...f, category: e.target.value }))}
+                                                                            className="w-full px-3 py-2 text-sm border border-slate-300 dark:border-slate-600 rounded-md bg-white dark:bg-slate-900 focus:outline-none focus:ring-2 focus:ring-[#801829] capitalize"
+                                                                        >
+                                                                            {TIMELINE_CATEGORY_OPTIONS.map((cat) => (
+                                                                                <option key={cat} value={cat} className="capitalize">{cat}</option>
+                                                                            ))}
+                                                                        </select>
+                                                                    </div>
+
+                                                                    <div>
+                                                                        <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                                                                            OCR text / notes
+                                                                        </label>
+                                                                        <textarea
+                                                                            rows={3}
+                                                                            value={editingForm.excerpt}
+                                                                            onChange={(e) => setEditingForm((f) => ({ ...f, excerpt: e.target.value }))}
+                                                                            className="w-full px-3 py-2 text-sm border border-slate-300 dark:border-slate-600 rounded-md bg-white dark:bg-slate-900 focus:outline-none focus:ring-2 focus:ring-[#801829] font-mono"
+                                                                            placeholder="Edit the extracted OCR sentence into a cleaner version…"
+                                                                        />
+                                                                        <p className="mt-1 text-[11px] text-slate-500">
+                                                                            This is what will appear under the event in the timeline.
+                                                                        </p>
+                                                                    </div>
+
+                                                                    <div className="flex items-center justify-end gap-2 pt-1">
+                                                                        <button
+                                                                            type="button"
+                                                                            onClick={cancelEditCandidate}
+                                                                            className="px-3 py-1.5 text-xs font-semibold text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors"
+                                                                        >
+                                                                            Cancel
+                                                                        </button>
+                                                                        <button
+                                                                            type="button"
+                                                                            onClick={saveEditCandidate}
+                                                                            className="px-3 py-1.5 text-xs font-semibold rounded-lg bg-[#801829] text-white hover:bg-[#60121f] transition-colors flex items-center gap-1"
+                                                                        >
+                                                                            <span className="material-icons text-sm">check</span>
+                                                                            Save changes
+                                                                        </button>
+                                                                    </div>
+                                                                </div>
+                                                            </li>
+                                                        );
+                                                    }
+
+                                                    return (
+                                                        <li
+                                                            key={c.key}
+                                                            className={`p-3 rounded-lg border transition-colors ${checked
+                                                                ? 'border-[#801829] bg-[#801829]/5'
+                                                                : 'border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600'}`}
+                                                        >
+                                                            <div className="flex items-start gap-3">
+                                                                <input
+                                                                    type="checkbox"
+                                                                    checked={checked}
+                                                                    onChange={() => toggleScanSelection(c.key)}
+                                                                    className="mt-1 w-4 h-4 text-[#801829] border-slate-300 rounded focus:ring-[#801829] cursor-pointer"
+                                                                />
+                                                                <div
+                                                                    className="flex-1 min-w-0 cursor-pointer"
+                                                                    onClick={() => toggleScanSelection(c.key)}
+                                                                >
+                                                                    <div className="flex flex-wrap items-center gap-2 mb-1">
+                                                                        <span className="text-xs font-bold text-slate-900 dark:text-white">
+                                                                            {formatDateDMY(c.eventDate)}
+                                                                        </span>
+                                                                        <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold border bg-slate-100 text-slate-600 border-slate-200 capitalize">
+                                                                            {c.category}
+                                                                        </span>
+                                                                        <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold border capitalize bg-amber-50 text-amber-700 border-amber-200">
+                                                                            {c.confidence} confidence
+                                                                        </span>
+                                                                    </div>
+                                                                    <p className="text-sm font-semibold text-slate-800 dark:text-slate-100">
+                                                                        {c.title}
+                                                                    </p>
+                                                                    {c.excerpt && (
+                                                                        <p className="text-xs italic text-slate-500 mt-1 whitespace-pre-wrap">"{c.excerpt}"</p>
+                                                                    )}
+                                                                </div>
+                                                                <button
+                                                                    type="button"
+                                                                    onClick={(e) => {
+                                                                        e.stopPropagation();
+                                                                        startEditCandidate(c);
+                                                                    }}
+                                                                    className="shrink-0 p-1.5 text-slate-500 hover:text-[#801829] hover:bg-slate-100 dark:hover:bg-slate-800 rounded transition-colors"
+                                                                    title="Edit this entry"
+                                                                >
+                                                                    <span className="material-icons text-base">edit</span>
+                                                                </button>
+                                                            </div>
+                                                        </li>
+                                                    );
+                                                })}
+                                            </ul>
+                                        </>
+                                    )}
+                                </>
+                            )}
+                        </div>
+
+                        {/* Footer */}
+                        <div className="px-5 py-3 border-t border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50 flex items-center justify-end gap-2 shrink-0">
+                            <button
+                                type="button"
+                                onClick={closeScanModal}
+                                className="px-4 py-2 text-sm font-semibold text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors"
+                            >
+                                Cancel
+                            </button>
+                            {scanStep === 'reviewCandidates' && scanCandidates.length > 0 && (
+                                <>
+                                    {editingCandidateKey && (
+                                        <span className="text-xs text-slate-500 mr-2">
+                                            Save or cancel your edit first
+                                        </span>
+                                    )}
+                                    <button
+                                        type="button"
+                                        disabled={scanSaving || scanSelectedKeys.size === 0 || !!editingCandidateKey}
+                                        onClick={handleSaveScannedEvents}
+                                        className="px-4 py-2 text-sm font-semibold rounded-lg bg-[#801829] text-white hover:bg-[#60121f] disabled:opacity-60 transition-colors flex items-center gap-2"
+                                    >
+                                        <span className="material-icons text-sm">playlist_add_check</span>
+                                        {scanSaving
+                                            ? 'Adding…'
+                                            : `Add ${scanSelectedKeys.size} to Timeline`}
+                                    </button>
+                                </>
                             )}
                         </div>
                     </div>

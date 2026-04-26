@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import userService from '../services/user.service';
+import lawFirmService from '../services/lawFirm.service';
 import PagesTopBar, {
     pagesListPageCanvasClass,
     pagesListPageHeaderBandClass,
@@ -19,6 +20,7 @@ const UsersManagement = () => {
     const [showEditModal, setShowEditModal] = useState(false);
     const [showDeleteModal, setShowDeleteModal] = useState(false);
     const [users, setUsers] = useState([]);
+    const [lawFirms, setLawFirms] = useState([]);
     const [loading, setLoading] = useState(true);
     const [stats, setStats] = useState({ total: 0, active: 0, admins: 0, nurses: 0 });
     const [pagination, setPagination] = useState({ page: 1, pages: 1, total: 0, limit: 10 });
@@ -28,13 +30,18 @@ const UsersManagement = () => {
         email: '',
         role: '',
         password: '',
-        status: 'active'
+        status: 'active',
+        lawFirm: ''
     });
     const [submitting, setSubmitting] = useState(false);
 
     useEffect(() => {
         fetchUsers();
     }, [pagination.page, roleFilter, statusFilter, searchQuery]);
+
+    useEffect(() => {
+        fetchLawFirms();
+    }, []);
 
     const fetchUsers = async () => {
         try {
@@ -65,13 +72,29 @@ const UsersManagement = () => {
         }
     };
 
+    const fetchLawFirms = async () => {
+        try {
+            const response = await lawFirmService.getAllLawFirms({ limit: 200 });
+            setLawFirms(response.data?.lawFirms || []);
+        } catch (error) {
+            console.error('Error fetching law firms:', error);
+        }
+    };
+
     const handleAddUser = async (e) => {
         e.preventDefault();
         try {
             setSubmitting(true);
-            await userService.createUser(formData);
+            const payload = { ...formData };
+            if (payload.role !== 'attorney') delete payload.lawFirm;
+            if (payload.role === 'attorney' && !payload.lawFirm) {
+                alert('Please select a law firm for this attorney.');
+                setSubmitting(false);
+                return;
+            }
+            await userService.createUser(payload);
             setShowAddModal(false);
-            setFormData({ fullName: '', email: '', role: '', password: '', status: 'active' });
+            setFormData({ fullName: '', email: '', role: '', password: '', status: 'active', lawFirm: '' });
             fetchUsers();
         } catch (error) {
             console.error('Error creating user:', error);
@@ -85,10 +108,17 @@ const UsersManagement = () => {
         e.preventDefault();
         try {
             setSubmitting(true);
-            await userService.updateUser(selectedUser._id, formData);
+            const payload = { ...formData };
+            if (payload.role !== 'attorney') delete payload.lawFirm;
+            if (payload.role === 'attorney' && !payload.lawFirm) {
+                alert('Please select a law firm for this attorney.');
+                setSubmitting(false);
+                return;
+            }
+            await userService.updateUser(selectedUser._id, payload);
             setShowEditModal(false);
             setSelectedUser(null);
-            setFormData({ fullName: '', email: '', role: '', password: '', status: 'active' });
+            setFormData({ fullName: '', email: '', role: '', password: '', status: 'active', lawFirm: '' });
             fetchUsers();
         } catch (error) {
             console.error('Error updating user:', error);
@@ -120,7 +150,8 @@ const UsersManagement = () => {
             email: user.email,
             role: user.role === 'legal-nurse' ? 'consultant' : user.role,
             password: '',
-            status: user.status
+            status: user.status,
+            lawFirm: user.lawFirm?._id || user.lawFirm || ''
         });
         setShowEditModal(true);
     };
@@ -437,7 +468,14 @@ const UsersManagement = () => {
                                 <select
                                     required
                                     value={formData.role}
-                                    onChange={(e) => setFormData({ ...formData, role: e.target.value })}
+                                    onChange={(e) => {
+                                        const nextRole = e.target.value;
+                                        setFormData((prev) => ({
+                                            ...prev,
+                                            role: nextRole,
+                                            lawFirm: nextRole === 'attorney' ? prev.lawFirm : ''
+                                        }));
+                                    }}
                                     className="w-full px-4 py-2 border border-slate-200 dark:border-slate-700 rounded-lg bg-slate-50 dark:bg-slate-800 focus:ring-2 focus:ring-[#0891b2] outline-none"
                                 >
                                     <option value="">Select role</option>
@@ -447,6 +485,22 @@ const UsersManagement = () => {
                                     <option value="client">Client</option>
                                 </select>
                             </div>
+                            {formData.role === 'attorney' && (
+                                <div>
+                                    <label className="block text-sm font-medium mb-2">Law Firm *</label>
+                                    <select
+                                        required
+                                        value={formData.lawFirm}
+                                        onChange={(e) => setFormData({ ...formData, lawFirm: e.target.value })}
+                                        className="w-full px-4 py-2 border border-slate-200 dark:border-slate-700 rounded-lg bg-slate-50 dark:bg-slate-800 focus:ring-2 focus:ring-[#0891b2] outline-none"
+                                    >
+                                        <option value="">Select law firm</option>
+                                        {lawFirms.map((firm) => (
+                                            <option key={firm._id} value={firm._id}>{firm.firmName}</option>
+                                        ))}
+                                    </select>
+                                </div>
+                            )}
                             <div className="flex gap-3 pt-4">
                                 <button
                                     type="button"
@@ -504,7 +558,14 @@ const UsersManagement = () => {
                                 <select
                                     required
                                     value={formData.role}
-                                    onChange={(e) => setFormData({ ...formData, role: e.target.value })}
+                                    onChange={(e) => {
+                                        const nextRole = e.target.value;
+                                        setFormData((prev) => ({
+                                            ...prev,
+                                            role: nextRole,
+                                            lawFirm: nextRole === 'attorney' ? prev.lawFirm : ''
+                                        }));
+                                    }}
                                     className="w-full px-4 py-2 border border-slate-200 dark:border-slate-700 rounded-lg bg-slate-50 dark:bg-slate-800 focus:ring-2 focus:ring-[#0891b2] outline-none"
                                 >
                                     <option value="admin">Admin</option>
@@ -513,6 +574,22 @@ const UsersManagement = () => {
                                     <option value="client">Client</option>
                                 </select>
                             </div>
+                            {formData.role === 'attorney' && (
+                                <div>
+                                    <label className="block text-sm font-medium mb-2">Law Firm *</label>
+                                    <select
+                                        required
+                                        value={formData.lawFirm}
+                                        onChange={(e) => setFormData({ ...formData, lawFirm: e.target.value })}
+                                        className="w-full px-4 py-2 border border-slate-200 dark:border-slate-700 rounded-lg bg-slate-50 dark:bg-slate-800 focus:ring-2 focus:ring-[#0891b2] outline-none"
+                                    >
+                                        <option value="">Select law firm</option>
+                                        {lawFirms.map((firm) => (
+                                            <option key={firm._id} value={firm._id}>{firm.firmName}</option>
+                                        ))}
+                                    </select>
+                                </div>
+                            )}
                             <div>
                                 <label className="block text-sm font-medium mb-2">Status *</label>
                                 <select

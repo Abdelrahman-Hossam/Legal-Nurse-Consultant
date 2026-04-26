@@ -74,6 +74,39 @@ const timelineService = {
             responseType: 'blob'
         });
         return response.data;
+    },
+
+    // Unified case timeline (manual events + auto-extracted medical-record events)
+    getUnifiedCaseTimeline: async (caseId) => {
+        const response = await api.get(`/timelines/case/${caseId}/unified`);
+        return response.data;
+    },
+
+    dismissExtractedEvent: async (caseId, key) => {
+        const response = await api.post(`/timelines/case/${caseId}/dismiss-extracted`, { key });
+        return response.data;
+    },
+
+    restoreExtractedEvent: async (caseId, key) => {
+        const response = await api.post(`/timelines/case/${caseId}/restore-extracted`, { key });
+        return response.data;
+    },
+
+    promoteExtractedEvent: async (caseId, event, dismiss = true) => {
+        const response = await api.post(`/timelines/case/${caseId}/promote-extracted`, { event, dismiss });
+        return response.data;
+    },
+
+    // Scan a single medical record and return candidate events (no save)
+    scanRecord: async (caseId, recordId) => {
+        const response = await api.get(`/timelines/case/${caseId}/scan/${recordId}`);
+        return response.data;
+    },
+
+    // Bulk-add selected extracted events into the timeline
+    promoteExtractedEventsBulk: async (caseId, events, dismiss = true) => {
+        const response = await api.post(`/timelines/case/${caseId}/promote-extracted-bulk`, { events, dismiss });
+        return response.data;
     }
 };
 

@@ -43,6 +43,11 @@ const userSchema = new mongoose.Schema({
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Case'
     }],
+    // For attorney users, links the attorney to their law firm.
+    lawFirm: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'LawFirm'
+    },
     lastLogin: {
         type: Date
     },

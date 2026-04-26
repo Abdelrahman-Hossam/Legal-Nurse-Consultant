@@ -5,7 +5,7 @@ const Case = require('../../../models/Case.model');
  */
 function sanitizeCaseInput(body) {
     const data = { ...body };
-    const optionalRefKeys = ['lawFirm', 'assignedConsultant'];
+    const optionalRefKeys = ['lawFirm', 'attorney', 'assignedConsultant'];
 
     optionalRefKeys.forEach((key) => {
         if (data[key] === '' || data[key] === null || data[key] === undefined) {
@@ -35,6 +35,7 @@ exports.createCase = async (body, userId) => {
     return Case.findById(newCase._id)
         .populate('client', 'fullName email')
         .populate('lawFirm', 'firmName')
+        .populate('attorney', 'fullName email lawFirm')
         .populate('assignedConsultant', 'fullName email')
         .populate('createdBy', 'fullName');
 };

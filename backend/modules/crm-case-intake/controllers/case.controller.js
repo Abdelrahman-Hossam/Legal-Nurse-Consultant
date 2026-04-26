@@ -21,6 +21,17 @@ function assertStatusAllowedForRole(role, status) {
 /** Safe fragment for use inside MongoDB $regex (user-supplied search). */
 const escapeRegex = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 
+async function resolveAttorneyAndLawFirm(body) {
+    if (!body.attorney) return;
+    const attorney = await User.findById(body.attorney).select('_id role lawFirm').lean();
+    if (!attorney || attorney.role !== 'attorney') {
+        throw new AppError('Selected attorney is invalid', 400);
+    }
+    if (attorney.lawFirm) {
+        body.lawFirm = attorney.lawFirm;
+    }
+}
+
 function assertConsultantAssignedToCase(caseDoc, user) {
     if (user.role !== 'consultant') return;
     const ac = caseDoc.assignedConsultant;
@@ -65,6 +76,7 @@ exports.getAllCases = async (req, res, next) => {
         const cases = await Case.find(query)
             .populate('client', 'fullName email phone')
             .populate('lawFirm', 'firmName email')
+            .populate('attorney', 'fullName email lawFirm')
             .populate('assignedConsultant', 'fullName email')
             .populate('createdBy', 'fullName')
             .sort({ createdAt: -1 })
@@ -95,6 +107,7 @@ exports.getCaseById = async (req, res, next) => {
         const caseData = await Case.findById(req.params.id)
             .populate('client', 'fullName email phone address medicalHistory')
             .populate('lawFirm', 'firmName contactPerson email phone')
+            .populate('attorney', 'fullName email lawFirm')
             .populate('assignedConsultant', 'fullName email phone')
             .populate('createdBy', 'fullName email')
             .populate('timeline.createdBy', 'fullName')
@@ -125,6 +138,10 @@ exports.createCase = async (req, res, next) => {
         if (['admin', 'attorney'].includes(req.user.role) && body.assignedConsultant) {
             body.assignedBy = req.user._id;
         }
+        if (!body.attorney) {
+            throw new AppError('Attorney is required when creating a case', 400);
+        }
+        await resolveAttorneyAndLawFirm(body);
 
         const populatedCase = await caseService.createCase(body, req.user._id);
 
@@ -159,6 +176,7 @@ exports.updateCase = async (req, res, next) => {
         }
 
         assertStatusAllowedForRole(req.user.role, body.status);
+        await resolveAttorneyAndLawFirm(body);
 
         const prevAssigned = existing.assignedConsultant?.toString();
         const updatePayload = caseService.sanitizeCaseUpdateBody(body);
@@ -181,7 +199,7 @@ exports.updateCase = async (req, res, next) => {
             req.params.id,
             updatePayload,
             { new: true, runValidators: true }
-        ).populate('client lawFirm assignedConsultant createdBy');
+        ).populate('client lawFirm attorney assignedConsultant createdBy');
 
         if (!caseData) {
             throw new AppError('Case not found', 404);
@@ -238,6 +256,7 @@ exports.acknowledgeCase = async (req, res, next) => {
         const populated = await Case.findById(caseDoc._id)
             .populate('client', 'fullName email phone')
             .populate('lawFirm', 'firmName contactPerson email phone')
+            .populate('attorney', 'fullName email lawFirm')
             .populate('assignedConsultant', 'fullName email phone')
             .populate('createdBy', 'fullName email');
 

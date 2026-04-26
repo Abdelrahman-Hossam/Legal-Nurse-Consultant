@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import caseService from '../../../services/case.service';
 import clientService from '../../../services/client.service';
-import lawFirmService from '../../../services/lawFirm.service';
+import userService from '../../../services/user.service';
 
 const CaseForm = () => {
     const navigate = useNavigate();
@@ -10,12 +10,12 @@ const CaseForm = () => {
     const casesListAfterCreate = pathname.startsWith('/staff') ? '/staff/cases' : '/cases';
     const [loading, setLoading] = useState(false);
     const [clients, setClients] = useState([]);
-    const [lawFirms, setLawFirms] = useState([]);
+    const [attorneys, setAttorneys] = useState([]);
     const [formData, setFormData] = useState({
         caseName: '',
         caseType: 'medical-malpractice',
         client: '',
-        lawFirm: '',
+        attorney: '',
         description: '',
         incidentDate: '',
         priority: 'medium'
@@ -23,7 +23,7 @@ const CaseForm = () => {
 
     useEffect(() => {
         fetchClients();
-        fetchLawFirms();
+        fetchAttorneys();
     }, []);
 
     const fetchClients = async () => {
@@ -35,12 +35,12 @@ const CaseForm = () => {
         }
     };
 
-    const fetchLawFirms = async () => {
+    const fetchAttorneys = async () => {
         try {
-            const response = await lawFirmService.getAllLawFirms({ limit: 100 });
-            setLawFirms(response.data.lawFirms || []);
+            const response = await userService.getAllUsers({ role: 'attorney', limit: 100 });
+            setAttorneys(response.data.users || []);
         } catch (error) {
-            console.error('Error fetching law firms:', error);
+            console.error('Error fetching attorneys:', error);
         }
     };
 
@@ -49,8 +49,8 @@ const CaseForm = () => {
         try {
             setLoading(true);
             const payload = { ...formData };
-            if (!payload.lawFirm || String(payload.lawFirm).trim() === '') {
-                delete payload.lawFirm;
+            if (!payload.attorney || String(payload.attorney).trim() === '') {
+                delete payload.attorney;
             }
             if (!payload.incidentDate || String(payload.incidentDate).trim() === '') {
                 delete payload.incidentDate;
@@ -131,15 +131,18 @@ const CaseForm = () => {
                         </select>
                     </div>
                     <div>
-                        <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">Law Firm</label>
+                        <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">Attorney *</label>
                         <select
+                            required
                             className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-[#0891b2] outline-none"
-                            value={formData.lawFirm}
-                            onChange={(e) => setFormData({ ...formData, lawFirm: e.target.value })}
+                            value={formData.attorney}
+                            onChange={(e) => setFormData({ ...formData, attorney: e.target.value })}
                         >
-                            <option value="">Select Law Firm</option>
-                            {lawFirms.map(firm => (
-                                <option key={firm._id} value={firm._id}>{firm.firmName}</option>
+                            <option value="">Select Attorney</option>
+                            {attorneys.map((attorney) => (
+                                <option key={attorney._id} value={attorney._id}>
+                                    {attorney.fullName}
+                                </option>
                             ))}
                         </select>
                     </div>

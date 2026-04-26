@@ -1,5 +1,6 @@
 const Timeline = require('../../../models/Timeline.model');
 const AppError = require('../../../shared/errors/AppError');
+const caseTimelineService = require('../services/caseTimeline.service');
 
 // Get timelines by case
 exports.getTimelinesByCase = async (req, res, next) => {
@@ -127,7 +128,9 @@ exports.addEvent = async (req, res, next) => {
 
         const eventData = {
             ...req.body,
-            createdBy: req.user._id
+            createdBy: req.user._id,
+            // Only the normal "Add Event" form may create true manual entries.
+            eventSource: 'manual'
         };
 
         timeline.events.push(eventData);
@@ -293,6 +296,224 @@ exports.generateTimeline = async (req, res, next) => {
             success: true,
             message: 'Timeline generated successfully',
             data: { timeline }
+        });
+    } catch (error) {
+        next(error);
+    }
+};
+
+// Get unified case timeline (manual events + extracted from medical records)
+exports.getUnifiedCaseTimeline = async (req, res, next) => {
+    try {
+        const { caseId } = req.params;
+        const result = await caseTimelineService.buildUnifiedTimeline(caseId);
+
+        res.status(200).json({
+            success: true,
+            data: {
+                timeline: result.timeline
+                    ? {
+                        _id: result.timeline._id,
+                        title: result.timeline.title,
+                        status: result.timeline.status,
+                        dismissedExtractedKeys: result.timeline.dismissedExtractedKeys || []
+                    }
+                    : null,
+                events: result.unifiedEvents,
+                manualEvents: result.manualEvents,
+                extractedEvents: result.extractedEvents,
+                stats: result.stats
+            }
+        });
+    } catch (error) {
+        next(error);
+    }
+};
+
+// Dismiss an auto-extracted event so it stops appearing in the unified timeline
+exports.dismissExtractedEvent = async (req, res, next) => {
+    try {
+        const { caseId } = req.params;
+        const { key } = req.body || {};
+        if (!key) {
+            throw new AppError('Extracted event key is required', 400);
+        }
+        await caseTimelineService.dismissExtractedEvent(caseId, key, req.user._id);
+        const result = await caseTimelineService.buildUnifiedTimeline(caseId);
+        res.status(200).json({
+            success: true,
+            message: 'Extracted event dismissed',
+            data: {
+                events: result.unifiedEvents,
+                manualEvents: result.manualEvents,
+                extractedEvents: result.extractedEvents,
+                stats: result.stats
+            }
+        });
+    } catch (error) {
+        next(error);
+    }
+};
+
+// Restore a previously dismissed extracted event
+exports.restoreExtractedEvent = async (req, res, next) => {
+    try {
+        const { caseId } = req.params;
+        const { key } = req.body || {};
+        if (!key) {
+            throw new AppError('Extracted event key is required', 400);
+        }
+        await caseTimelineService.restoreExtractedEvent(caseId, key, req.user._id);
+        const result = await caseTimelineService.buildUnifiedTimeline(caseId);
+        res.status(200).json({
+            success: true,
+            message: 'Extracted event restored',
+            data: {
+                events: result.unifiedEvents,
+                manualEvents: result.manualEvents,
+                extractedEvents: result.extractedEvents,
+                stats: result.stats
+            }
+        });
+    } catch (error) {
+        next(error);
+    }
+};
+
+// Scan a single medical record and return its extracted candidate events
+exports.scanRecord = async (req, res, next) => {
+    try {
+        const { caseId, recordId } = req.params;
+        const result = await caseTimelineService.scanMedicalRecord(caseId, recordId);
+
+        if (!result.record) {
+            throw new AppError('Medical record not found for this case', 404);
+        }
+
+        res.status(200).json({
+            success: true,
+            data: result
+        });
+    } catch (error) {
+        next(error);
+    }
+};
+
+const VALID_TIMELINE_CATEGORIES = ['treatment', 'medication', 'lab', 'imaging', 'consultation', 'procedure', 'symptom', 'other'];
+
+// Promote multiple extracted events at once (used by the Scan UX)
+exports.promoteExtractedEventsBulk = async (req, res, next) => {
+    try {
+        const { caseId } = req.params;
+        const { events = [], dismiss = true } = req.body || {};
+        if (!Array.isArray(events) || events.length === 0) {
+            throw new AppError('Provide at least one event to add', 400);
+        }
+
+        const timelineDoc = await caseTimelineService.ensureTimelineForCase(caseId, req.user._id);
+
+        events.forEach((event) => {
+            if (!event || !event.eventDate || !event.title) return;
+            const category = VALID_TIMELINE_CATEGORIES.includes(event.category) ? event.category : 'other';
+            // The user may have edited the OCR excerpt during the Scan review step.
+            // Persist that edited text as the citation excerpt so it shows up under
+            // the timeline entry.
+            const excerptText = (event.excerpt || '').trim();
+            const eventSource = event.eventSource === 'medical_record_edited'
+                ? 'medical_record_edited'
+                : 'medical_record';
+            timelineDoc.events.push({
+                date: new Date(event.eventDate),
+                category,
+                title: event.title,
+                description: event.description || '',
+                provider: event.provider || {},
+                citations: event.sourceType === 'medical_record' && event.sourceId
+                    ? [{
+                        document: event.sourceId,
+                        excerpt: excerptText
+                    }]
+                    : [],
+                eventSource,
+                createdBy: req.user._id
+            });
+            if (dismiss && event.key && !timelineDoc.dismissedExtractedKeys.includes(event.key)) {
+                timelineDoc.dismissedExtractedKeys.push(event.key);
+            }
+        });
+
+        timelineDoc.events.sort((a, b) => new Date(a.date) - new Date(b.date));
+        await timelineDoc.save();
+
+        const result = await caseTimelineService.buildUnifiedTimeline(caseId);
+        res.status(201).json({
+            success: true,
+            message: `${events.length} event(s) added to timeline`,
+            data: {
+                events: result.unifiedEvents,
+                manualEvents: result.manualEvents,
+                extractedEvents: result.extractedEvents,
+                stats: result.stats
+            }
+        });
+    } catch (error) {
+        next(error);
+    }
+};
+
+// Promote an extracted event into a real manual Timeline event with citation
+exports.promoteExtractedEvent = async (req, res, next) => {
+    try {
+        const { caseId } = req.params;
+        const { event, dismiss = true } = req.body || {};
+        if (!event || !event.eventDate || !event.title) {
+            throw new AppError('Event date and title are required', 400);
+        }
+
+        const timelineDoc = await caseTimelineService.ensureTimelineForCase(caseId, req.user._id);
+
+        const validCategories = ['treatment', 'medication', 'lab', 'imaging', 'consultation', 'procedure', 'symptom', 'other'];
+        const category = validCategories.includes(event.category) ? event.category : 'other';
+
+        const eventSource = event.eventSource === 'medical_record_edited'
+            ? 'medical_record_edited'
+            : 'medical_record';
+
+        const newEvent = {
+            date: new Date(event.eventDate),
+            category,
+            title: event.title,
+            description: event.description || '',
+            provider: event.provider || {},
+            citations: event.sourceType === 'medical_record' && event.sourceId
+                ? [{
+                    document: event.sourceId,
+                    excerpt: (event.excerpt || '').trim()
+                }]
+                : [],
+            eventSource,
+            createdBy: req.user._id
+        };
+
+        timelineDoc.events.push(newEvent);
+        if (dismiss && event.key) {
+            if (!timelineDoc.dismissedExtractedKeys.includes(event.key)) {
+                timelineDoc.dismissedExtractedKeys.push(event.key);
+            }
+        }
+        timelineDoc.events.sort((a, b) => new Date(a.date) - new Date(b.date));
+        await timelineDoc.save();
+
+        const result = await caseTimelineService.buildUnifiedTimeline(caseId);
+        res.status(201).json({
+            success: true,
+            message: 'Event added to timeline',
+            data: {
+                events: result.unifiedEvents,
+                manualEvents: result.manualEvents,
+                extractedEvents: result.extractedEvents,
+                stats: result.stats
+            }
         });
     } catch (error) {
         next(error);
