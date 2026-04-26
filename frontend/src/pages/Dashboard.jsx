@@ -5,11 +5,27 @@ import caseService from "../services/case.service";
 import clientService from "../services/client.service";
 import deadlineService from "../services/deadline.service";
 import taskService from "../services/task.service";
+import userService from "../services/user.service";
 import { Button } from "../shared/components/Button";
 
 /** Match Active Docket: all cases except closed/archived (see CasesList summary). */
 const countCasesByStatus = (rows, statusId) =>
   rows?.find((r) => r._id === statusId)?.count ?? 0;
+
+const CASE_TYPE_LABELS = {
+  "medical-malpractice": "Medical Malpractice",
+  "personal-injury": "Personal Injury",
+  "workers-compensation": "Workers Compensation",
+  "product-liability": "Product Liability",
+  "wrongful-death": "Wrongful Death",
+  "nursing-home-neglect": "Nursing Home Neglect",
+  other: "Other",
+};
+
+const formatCaseTypeLabel = (id) => {
+  if (!id) return "Other";
+  return CASE_TYPE_LABELS[id] || id.replace(/-/g, " ").replace(/\b\w/g, (m) => m.toUpperCase());
+};
 
 const Dashboard = () => {
   const navigate = useNavigate();
@@ -49,6 +65,8 @@ const Dashboard = () => {
   ]);
   const [recentCases, setRecentCases] = useState([]);
   const [deadlines, setDeadlines] = useState([]);
+  const [caseTypeBreakdown, setCaseTypeBreakdown] = useState([]);
+  const [recentActivity, setRecentActivity] = useState([]);
 
   useEffect(() => {
     // Get user name from localStorage
@@ -71,6 +89,8 @@ const Dashboard = () => {
         taskStats,
         clientStats,
         casesData,
+        clientsData,
+        usersData,
         upcomingDeadlines,
       ] = await Promise.all([
         analyticsService.getCaseAnalytics({}),
@@ -78,16 +98,22 @@ const Dashboard = () => {
         taskService.getTaskStats(),
         clientService.getClientStats(),
         caseService.getAllCases({ limit: 4, sort: "-updatedAt" }),
+        clientService.getAllClients({ limit: 100, page: 1 }),
+        userService.getAllUsers({ limit: 100, page: 1 }),
         deadlineService.getUpcomingDeadlines(30),
       ]);
 
       // Calculate new clients this month
       const now = new Date();
       const firstDayOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
-      const newClientsThisMonth =
-        clientStats.data?.recentClients?.filter(
-          (client) => new Date(client.createdAt) >= firstDayOfMonth,
-        ).length || 0;
+      const recentClientsFromStats = clientStats?.data?.recentClients || [];
+      const recentClientsFromList = clientsData?.data?.clients || [];
+      const clientsForMonthCalc =
+        recentClientsFromList.length > 0 ? recentClientsFromList : recentClientsFromStats;
+      const usersForMonthCalc = usersData?.data?.users || [];
+      const newUsersThisMonth = usersForMonthCalc.filter(
+        (u) => new Date(u.createdAt) >= firstDayOfMonth,
+      ).length;
 
       // getTaskStats() returns axios response.data (flat), not { data: { ... } }
       const ts = taskStats || {};
@@ -132,17 +158,21 @@ const Dashboard = () => {
         {
           icon: "monetization_on",
           label: "Monthly Revenue",
-          value: `$${(revenueAnalytics.data?.totalRevenue?.paid || 0).toLocaleString()}`,
-          change: revenueAnalytics.data?.percentageChange
-            ? `${revenueAnalytics.data.percentageChange > 0 ? "+" : ""}${revenueAnalytics.data.percentageChange.toFixed(1)}%`
-            : "",
+          value: (() => {
+            const thisMonth = now.getMonth() + 1;
+            const thisYear = now.getFullYear();
+            const monthRow = (revenueAnalytics?.data?.revenueByPeriod || []).find(
+              (r) => r?._id?.month === thisMonth && r?._id?.year === thisYear,
+            );
+            return `$${Number(monthRow?.paidRevenue || 0).toLocaleString()}`;
+          })(),
+          badge: "This Month",
           color: "green",
-          positive: revenueAnalytics.data?.percentageChange >= 0,
         },
         {
           icon: "person_add",
-          label: "New Clients",
-          value: newClientsThisMonth.toString(),
+          label: "New Users",
+          value: newUsersThisMonth.toString(),
           badge: "This Month",
           color: "blue",
         },
@@ -154,11 +184,11 @@ const Dashboard = () => {
       const formattedCases =
         casesData.data?.cases?.map((caseItem) => ({
           id: caseItem._id,
-          name: caseItem.title || caseItem.caseName,
+          name: caseItem.caseName || caseItem.title,
           caseId: caseItem.caseNumber || `#${caseItem._id.slice(-8)}`,
           attorney:
-            caseItem.assignedAttorney?.name ||
-            caseItem.lawFirm?.name ||
+            caseItem.attorney?.fullName ||
+            caseItem.lawFirm?.firmName ||
             "Unassigned",
           activity: formatTimeAgo(caseItem.updatedAt),
           status: caseItem.status?.toUpperCase() || "PENDING",
@@ -168,8 +198,11 @@ const Dashboard = () => {
       setRecentCases(formattedCases);
 
       // Format deadlines
+      const deadlineRows = Array.isArray(upcomingDeadlines)
+        ? upcomingDeadlines
+        : (upcomingDeadlines?.data?.deadlines || []);
       const formattedDeadlines =
-        upcomingDeadlines.data?.deadlines?.slice(0, 4).map((deadline) => {
+        deadlineRows.slice(0, 4).map((deadline) => {
           const deadlineDate = new Date(deadline.dueDate);
           const daysUntil = Math.ceil(
             (deadlineDate - now) / (1000 * 60 * 60 * 24),
@@ -191,6 +224,37 @@ const Dashboard = () => {
         }) || [];
 
       setDeadlines(formattedDeadlines);
+
+      const typeRows = casePayload.casesByType || [];
+      const totalByType = typeRows.reduce((sum, row) => sum + (row.count || 0), 0) || 1;
+      setCaseTypeBreakdown(
+        typeRows
+          .sort((a, b) => (b.count || 0) - (a.count || 0))
+          .map((row) => ({
+            id: row._id || "other",
+            label: formatCaseTypeLabel(row._id),
+            count: row.count || 0,
+            percent: Math.round(((row.count || 0) / totalByType) * 100),
+          })),
+      );
+
+      const activityFeed = [
+        ...formattedCases.slice(0, 4).map((item) => ({
+          id: `case-${item.id}`,
+          when: item.activity,
+          text: `Case ${item.caseId} (${item.name}) updated.`,
+          subtext: item.attorney || "Unassigned",
+          tone: "case",
+        })),
+        ...recentClientsFromStats.slice(0, 4).map((client) => ({
+          id: `client-${client._id || client.email || client.fullName}`,
+          when: formatTimeAgo(client.createdAt),
+          text: `New client ${client.fullName || "Client"} created.`,
+          subtext: "Client Intake",
+          tone: "client",
+        })),
+      ].slice(0, 6);
+      setRecentActivity(activityFeed);
     } catch (error) {
       console.error("Error fetching dashboard data:", error);
     } finally {
@@ -446,6 +510,81 @@ const Dashboard = () => {
             </button>
           </div>
         </div>
+      </div>
+
+      {/* Bottom Analytics Strip */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mt-8">
+        <section className="lg:col-span-2 bg-[#f3efe5] dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
+          <div className="px-6 py-5 border-b border-slate-200 dark:border-slate-800 bg-[#e4dace] dark:bg-slate-900/80">
+            <h2 className="font-bold text-lg text-slate-800 dark:text-white">
+              Case Type Breakdown
+            </h2>
+          </div>
+          <div className="p-6 space-y-5">
+            {loading ? (
+              <div className="flex justify-center items-center py-10">
+                <div className="animate-spin rounded-full h-7 w-7 border-b-2 border-[#0891b2]"></div>
+              </div>
+            ) : caseTypeBreakdown.length === 0 ? (
+              <div className="text-center py-8 text-slate-500 text-sm">
+                No case-type data available yet.
+              </div>
+            ) : (
+              caseTypeBreakdown.map((row) => (
+                <div key={row.id}>
+                  <div className="flex justify-between items-center text-sm mb-1.5">
+                    <span className="font-medium text-slate-700 dark:text-slate-200">
+                      {row.label}
+                    </span>
+                    <span className="font-bold text-slate-800 dark:text-slate-100">{row.count}</span>
+                  </div>
+                  <div className="h-2 rounded bg-slate-200 dark:bg-slate-700 overflow-hidden">
+                    <div
+                      className="h-full bg-[#801829]"
+                      style={{ width: `${Math.max(3, row.percent)}%` }}
+                    />
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+        </section>
+
+        <aside className="bg-[#f3efe5] dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
+          <div className="px-6 py-5 border-b border-slate-200 dark:border-slate-800 bg-[#e4dace] dark:bg-slate-900/80">
+            <h2 className="font-bold text-lg text-slate-800 dark:text-white">
+              Recent Activity
+            </h2>
+          </div>
+          <div className="p-6 space-y-4">
+            {loading ? (
+              <div className="flex justify-center items-center py-10">
+                <div className="animate-spin rounded-full h-7 w-7 border-b-2 border-[#0891b2]"></div>
+              </div>
+            ) : recentActivity.length === 0 ? (
+              <div className="text-center py-8 text-slate-500 text-sm">
+                No recent activity yet.
+              </div>
+            ) : (
+              recentActivity.map((item) => (
+                <div key={item.id} className="flex items-start gap-3">
+                  <span
+                    className={`mt-1 w-2 h-2 rounded-full ${
+                      item.tone === "client" ? "bg-amber-500" : "bg-[#801829]"
+                    }`}
+                  />
+                  <div className="min-w-0">
+                    <p className="text-xs text-slate-500">{item.when}</p>
+                    <p className="text-sm text-slate-800 dark:text-slate-100 mt-0.5">
+                      {item.text}
+                    </p>
+                    <p className="text-xs text-[#801829] mt-0.5">— {item.subtext}</p>
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+        </aside>
       </div>
 
       {/* Footer / Status Bar */}

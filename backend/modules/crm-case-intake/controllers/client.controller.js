@@ -134,12 +134,24 @@ exports.getClientStats = async (req, res, next) => {
         ]);
 
         const total = await Client.countDocuments();
+        const startOfMonth = new Date();
+        startOfMonth.setDate(1);
+        startOfMonth.setHours(0, 0, 0, 0);
+        const newThisMonth = await Client.countDocuments({
+            createdAt: { $gte: startOfMonth }
+        });
+        const recentClients = await Client.find({})
+            .select('fullName createdAt')
+            .sort({ createdAt: -1 })
+            .limit(5);
 
         res.status(200).json({
             success: true,
             data: {
                 total,
-                byStatus: stats
+                byStatus: stats,
+                newThisMonth,
+                recentClients
             }
         });
     } catch (error) {
