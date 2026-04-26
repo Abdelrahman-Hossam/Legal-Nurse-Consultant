@@ -130,7 +130,7 @@ const LawFirmsList = () => {
 
             {/* Search */}
             <section className="mb-6">
-                <div className="bg-white dark:bg-slate-900 p-4 rounded-xl border shadow-sm">
+                <div className="bg-[#e4dace] dark:bg-slate-900 p-4 rounded-xl border shadow-sm">
                     <div className="relative">
                         <span className="absolute left-3 top-1/2 -translate-y-1/2 material-icons text-slate-400">search</span>
                         <input
@@ -156,7 +156,7 @@ const LawFirmsList = () => {
                 ) : (
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
                         {firms.map((firm) => (
-                            <div key={firm._id} className="group bg-white dark:bg-slate-900 border rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-all">
+                            <div key={firm._id} className="group bg-[#e4dace] dark:bg-slate-900 border rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-all">
                                 <div className="h-2 bg-[#1f3b61]"></div>
                                 <div className="p-6">
                                     <div className="flex items-start justify-between mb-4">

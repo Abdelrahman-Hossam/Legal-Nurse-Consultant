@@ -89,7 +89,7 @@ const ClientDashboard = () => {
 
             {/* Stats Cards */}
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-                <div className="bg-white dark:bg-slate-900 p-6 rounded-xl border border-slate-200 dark:border-slate-800">
+                <div className="bg-[#e4dace] dark:bg-slate-900 p-6 rounded-xl border border-slate-200 dark:border-slate-800">
                     <div className="flex items-center justify-between">
                         <div>
                             <p className="text-sm text-slate-500">Active Cases</p>
@@ -100,7 +100,7 @@ const ClientDashboard = () => {
                         </div>
                     </div>
                 </div>
-                <div className="bg-white dark:bg-slate-900 p-6 rounded-xl border border-slate-200 dark:border-slate-800">
+                <div className="bg-[#e4dace] dark:bg-slate-900 p-6 rounded-xl border border-slate-200 dark:border-slate-800">
                     <div className="flex items-center justify-between">
                         <div>
                             <p className="text-sm text-slate-500">Documents</p>
@@ -111,7 +111,7 @@ const ClientDashboard = () => {
                         </div>
                     </div>
                 </div>
-                <div className="bg-white dark:bg-slate-900 p-6 rounded-xl border border-slate-200 dark:border-slate-800">
+                <div className="bg-[#e4dace] dark:bg-slate-900 p-6 rounded-xl border border-slate-200 dark:border-slate-800">
                     <div className="flex items-center justify-between">
                         <div>
                             <p className="text-sm text-slate-500">Unread Messages</p>
@@ -122,7 +122,7 @@ const ClientDashboard = () => {
                         </div>
                     </div>
                 </div>
-                <div className="bg-white dark:bg-slate-900 p-6 rounded-xl border border-slate-200 dark:border-slate-800">
+                <div className="bg-[#e4dace] dark:bg-slate-900 p-6 rounded-xl border border-slate-200 dark:border-slate-800">
                     <div className="flex items-center justify-between">
                         <div>
                             <p className="text-sm text-slate-500">Pending Invoices</p>
@@ -147,7 +147,7 @@ const ClientDashboard = () => {
                         </div>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             {activeCases.length > 0 ? activeCases.map((caseItem) => (
-                                <div key={caseItem._id} className="bg-white dark:bg-slate-900 p-5 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm hover:shadow-md transition-shadow group">
+                                <div key={caseItem._id} className="bg-[#e4dace] dark:bg-slate-900 p-5 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm hover:shadow-md transition-shadow group">
                                     <div className="flex justify-between items-start mb-4">
                                         <div>
                                             <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Case: {caseItem.caseNumber}</span>
@@ -184,11 +184,11 @@ const ClientDashboard = () => {
                                 Recent Documents
                             </h2>
                         </div>
-                        <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
+                        <div className="bg-[#f3efe5] dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
                             {recentDocuments.length > 0 ? (
                                 <>
                                     <table className="w-full text-left">
-                                        <thead className="bg-slate-50 dark:bg-slate-800/50 text-slate-500 text-[10px] uppercase font-bold tracking-widest border-b border-slate-200 dark:border-slate-800">
+                                        <thead className="bg-[#e4dace] dark:bg-slate-800/50 text-slate-500 text-[10px] uppercase font-bold tracking-widest border-b border-slate-200 dark:border-slate-800">
                                             <tr>
                                                 <th className="px-6 py-3">File Name</th>
                                                 <th className="px-6 py-3">Case</th>
@@ -196,9 +196,9 @@ const ClientDashboard = () => {
                                                 <th className="px-6 py-3 text-right">Action</th>
                                             </tr>
                                         </thead>
-                                        <tbody className="divide-y divide-slate-200 dark:divide-slate-800">
+                                        <tbody className="bg-[#f3efe5] dark:bg-slate-900 divide-y divide-slate-200 dark:divide-slate-800">
                                             {recentDocuments.map((doc) => (
-                                                <tr key={doc._id} className="hover:bg-slate-50 dark:hover:bg-slate-800/30 transition-colors">
+                                                <tr key={doc._id} className="hover:bg-[#f3efe5] dark:hover:bg-slate-800/30 transition-colors">
                                                     <td className="px-6 py-4">
                                                         <div className="flex items-center gap-3">
                                                             <span className="material-icons text-blue-500">description</span>
@@ -223,7 +223,7 @@ const ClientDashboard = () => {
                                             ))}
                                         </tbody>
                                     </table>
-                                    <div className="p-4 bg-slate-50/50 dark:bg-slate-800/20 text-center">
+                                    <div className="p-4 bg-[#f3efe5] dark:bg-slate-800/20 text-center">
                                         <button className="text-xs font-bold text-[#0891b2] hover:underline">See All Documents</button>
                                     </div>
                                 </>
@@ -238,7 +238,7 @@ const ClientDashboard = () => {
 
                 {/* Sidebar: Recent Activity */}
                 <div className="space-y-6">
-                    <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm p-6">
+                    <div className="bg-[#e4dace] dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm p-6">
                         <h3 className="font-bold text-lg mb-4 flex items-center gap-2">
                             <span className="material-icons text-[#0891b2]">notifications</span>
                             Recent Activity

@@ -260,14 +260,14 @@ const ClientDocuments = () => {
 
             {/* Documents Grid */}
             {documents.length === 0 ? (
-                <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-12 text-center">
+                <div className="bg-[#e4dace] dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-12 text-center">
                     <span className="material-icons text-6xl text-slate-300 mb-4">folder_open</span>
                     <p className="text-slate-500">No documents available</p>
                 </div>
             ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     {documents.map((doc) => (
-                        <div key={doc._id} className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-6 hover:shadow-lg transition-all group">
+                        <div key={doc._id} className="bg-[#e4dace] dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-6 hover:shadow-lg transition-all group">
                             <div className="flex items-start justify-between mb-4">
                                 <div className="w-12 h-12 bg-[#0891b2]/10 rounded-lg flex items-center justify-center group-hover:bg-[#0891b2] group-hover:text-white transition-colors">
                                     <span className="material-icons text-[#0891b2] group-hover:text-white">{getFileIcon(doc.fileType)}</span>

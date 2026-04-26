@@ -168,19 +168,19 @@ const TasksPage = () => {
 
             {/* Dashboard Summary */}
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
-                <div className="bg-white dark:bg-slate-900/40 border border-slate-200 dark:border-slate-800 p-4 rounded-xl">
+                <div className="bg-[#f6f1e7] dark:bg-slate-900/40 border border-[#e0d9cd] dark:border-slate-800 p-4 rounded-xl">
                     <p className="text-xs text-slate-500 uppercase font-bold tracking-wider mb-1">Active Tasks</p>
                     <p className="text-2xl font-bold">{(stats.pendingTasks || 0) + (stats.inProgressTasks || 0)}</p>
                 </div>
-                <div className="bg-white dark:bg-slate-900/40 border border-slate-200 dark:border-slate-800 p-4 rounded-xl border-l-4 border-l-red-500">
+                <div className="bg-[#f6f1e7] dark:bg-slate-900/40 border border-[#e0d9cd] dark:border-slate-800 p-4 rounded-xl border-l-4 border-l-red-500">
                     <p className="text-xs text-red-500 uppercase font-bold tracking-wider mb-1">Overdue</p>
                     <p className="text-2xl font-bold">{stats.overdueTasks || 0}</p>
                 </div>
-                <div className="bg-white dark:bg-slate-900/40 border border-slate-200 dark:border-slate-800 p-4 rounded-xl">
+                <div className="bg-[#f6f1e7] dark:bg-slate-900/40 border border-[#e0d9cd] dark:border-slate-800 p-4 rounded-xl">
                     <p className="text-xs text-slate-500 uppercase font-bold tracking-wider mb-1">Completed</p>
                     <p className="text-2xl font-bold text-[#0891b2]">{stats.completedTasks || 0}</p>
                 </div>
-                <div className="bg-white dark:bg-slate-900/40 border border-slate-200 dark:border-slate-800 p-4 rounded-xl">
+                <div className="bg-[#f6f1e7] dark:bg-slate-900/40 border border-[#e0d9cd] dark:border-slate-800 p-4 rounded-xl">
                     <p className="text-xs text-slate-500 uppercase font-bold tracking-wider mb-1">Total Tasks</p>
                     <p className="text-2xl font-bold">{stats.totalTasks || 0}</p>
                 </div>
@@ -200,21 +200,21 @@ const TasksPage = () => {
                     <div className="flex items-center bg-slate-100 dark:bg-slate-800/50 p-1 rounded-lg">
                         <button
                             onClick={() => setFilter('all')}
-                            className={`px-4 py-1.5 rounded-md text-sm font-medium ${filter === 'all' ? 'bg-white dark:bg-slate-700 shadow-sm' : 'text-slate-500'
+                            className={`px-4 py-1.5 rounded-md text-sm font-medium ${filter === 'all' ? 'bg-[#f3efe5] dark:bg-slate-700 shadow-sm' : 'text-slate-500'
                                 }`}
                         >
                             All
                         </button>
                         <button
                             onClick={() => setFilter('today')}
-                            className={`px-4 py-1.5 rounded-md text-sm font-medium ${filter === 'today' ? 'bg-white dark:bg-slate-700 shadow-sm' : 'text-slate-500'
+                            className={`px-4 py-1.5 rounded-md text-sm font-medium ${filter === 'today' ? 'bg-[#f3efe5] dark:bg-slate-700 shadow-sm' : 'text-slate-500'
                                 }`}
                         >
                             Today
                         </button>
                         <button
                             onClick={() => setFilter('overdue')}
-                            className={`px-4 py-1.5 rounded-md text-sm font-medium ${filter === 'overdue' ? 'bg-white dark:bg-slate-700 shadow-sm' : 'text-slate-500'
+                            className={`px-4 py-1.5 rounded-md text-sm font-medium ${filter === 'overdue' ? 'bg-[#f3efe5] dark:bg-slate-700 shadow-sm' : 'text-slate-500'
                                 }`}
                         >
                             Overdue
@@ -225,7 +225,7 @@ const TasksPage = () => {
                     <div className="relative flex-grow lg:w-72">
                         <span className="material-icons absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-lg">search</span>
                         <input
-                            className="w-full pl-10 pr-4 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg text-sm focus:ring-2 focus:ring-[#0891b2]/50 focus:border-[#0891b2] outline-none transition-all"
+                            className="w-full pl-10 pr-4 py-2 bg-white dark:bg-slate-900 border border-[#e0d9cd] dark:border-slate-800 rounded-lg text-sm focus:ring-2 focus:ring-[#0891b2]/50 focus:border-[#0891b2] outline-none transition-all"
                             placeholder="Search tasks or case IDs..."
                             type="text"
                             value={searchQuery}
@@ -239,11 +239,11 @@ const TasksPage = () => {
             </div>
 
             {/* Task Table */}
-            <div className="bg-white dark:bg-slate-900/30 border border-slate-200 dark:border-slate-800 rounded-xl overflow-hidden shadow-sm">
+            <div className="bg-[#f3efe5] dark:bg-slate-900/30 border border-[#e0d9cd] dark:border-slate-800 rounded-xl overflow-hidden shadow-sm">
                 <div className="overflow-x-auto">
                     <table className="w-full text-left border-collapse">
                         <thead>
-                            <tr className="bg-slate-50/50 dark:bg-slate-800/30 border-b border-slate-200 dark:border-slate-800">
+                            <tr className="bg-[#efe8da] dark:bg-slate-800/30 border-b border-[#ddd3c3] dark:border-slate-800">
                                 <th className="py-4 px-6 w-12">
                                     <input
                                         className="rounded border-slate-300 dark:border-slate-700 text-[#0891b2] focus:ring-[#0891b2] bg-transparent"
@@ -274,7 +274,7 @@ const TasksPage = () => {
                                 filteredTasks.map((task) => (
                                     <tr
                                         key={task._id}
-                                        className={`group hover:bg-slate-50 dark:hover:bg-[#0891b2]/5 transition-colors cursor-pointer ${task.status === 'in-progress' ? 'bg-[#0891b2]/5 hover:bg-[#0891b2]/10 border-l-4 border-l-[#0891b2]' : ''}`}
+                                        className={`group hover:bg-[#efe8da] dark:hover:bg-[#0891b2]/5 transition-colors cursor-pointer ${task.status === 'in-progress' ? 'bg-[#0891b2]/5 hover:bg-[#0891b2]/10 border-l-4 border-l-[#0891b2]' : 'bg-[#f6f1e7]'}`}
                                     >
                                         <td className="py-5 px-6">
                                             <input
@@ -345,13 +345,13 @@ const TasksPage = () => {
                 </div>
 
                 {/* Pagination */}
-                <div className="px-6 py-4 border-t border-slate-100 dark:border-slate-800 bg-slate-50/30 dark:bg-slate-800/20 flex items-center justify-between">
+                <div className="px-6 py-4 border-t border-[#ddd3c3] dark:border-slate-800 bg-[#efe8da] dark:bg-slate-800/20 flex items-center justify-between">
                     <p className="text-xs text-slate-500">Showing {filteredTasks.length} of {tasks.length} tasks</p>
                     <div className="flex items-center gap-2">
-                        <button className="p-2 border border-slate-200 dark:border-slate-700 rounded hover:bg-white dark:hover:bg-slate-800 disabled:opacity-30" disabled>
+                        <button className="p-2 border border-[#e0d9cd] dark:border-slate-700 rounded hover:bg-[#f6f1e7] dark:hover:bg-slate-800 disabled:opacity-30" disabled>
                             <span className="material-icons text-sm">chevron_left</span>
                         </button>
-                        <button className="p-2 border border-slate-200 dark:border-slate-700 rounded hover:bg-white dark:hover:bg-slate-800">
+                        <button className="p-2 border border-[#e0d9cd] dark:border-slate-700 rounded hover:bg-[#f6f1e7] dark:hover:bg-slate-800">
                             <span className="material-icons text-sm">chevron_right</span>
                         </button>
                     </div>

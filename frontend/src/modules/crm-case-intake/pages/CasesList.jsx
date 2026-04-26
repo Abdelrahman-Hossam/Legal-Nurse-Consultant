@@ -41,10 +41,10 @@ const statusBadgeClass = (key) => {
         review: 'border-amber-300 bg-amber-50 text-amber-900',
         active: 'border-emerald-400 bg-emerald-50 text-emerald-900',
         expert: 'border-slate-300 bg-slate-100 text-slate-700',
-        intake: 'border-slate-300 bg-white text-slate-600',
+        intake: 'border-slate-300 bg-[#e4dace] text-slate-600',
         closed: 'border-slate-200 bg-slate-50 text-slate-500',
         archived: 'border-slate-200 bg-slate-50 text-slate-500',
-        default: 'border-slate-300 bg-white text-slate-600'
+        default: 'border-slate-300 bg-[#e4dace] text-slate-600'
     };
     return `${base} ${map[key] || map.default}`;
 };
@@ -259,11 +259,11 @@ const CasesList = () => {
                     </div>
 
                     {/* Table — reference column set */}
-                    <div className="overflow-hidden rounded-sm border border-[#e8e3d9] bg-white shadow-[0_1px_2px_rgba(0,0,0,0.04)]">
+                    <div className="overflow-hidden rounded-sm border border-[#e0d9cd] bg-[#f3efe5] shadow-[0_1px_2px_rgba(0,0,0,0.03)]">
                         <div className="overflow-x-auto">
                             <table className="w-full min-w-[960px] border-collapse text-left">
                                 <thead>
-                                    <tr className="border-b border-[#e8e3d9] bg-[#f0ebe3]">
+                                    <tr className="border-b border-[#e8e3d9] bg-[#e4dace]">
                                         {['Case ID', 'Matter / Attorney', 'Type', 'Status', 'Deadline', 'Action'].map((label) => (
                                             <th
                                                 key={label}
@@ -307,8 +307,8 @@ const CasesList = () => {
                                             return (
                                                 <tr
                                                     key={caseItem._id}
-                                                    className={`border-b border-[#efeae2] last:border-b-0 ${
-                                                        idx % 2 === 0 ? 'bg-white' : 'bg-[#fcfaf7]'
+                                                    className={`border-b border-[#e4dace] last:border-b-0 ${
+                                                        idx % 2 === 0 ? 'bg-[#f6f1e7]' : 'bg-[#f3efe5]'
                                                     }`}
                                                 >
                                                     <td className="px-5 py-5 align-middle">

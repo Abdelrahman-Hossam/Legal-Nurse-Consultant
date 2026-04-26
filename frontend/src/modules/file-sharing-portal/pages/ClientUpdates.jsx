@@ -80,7 +80,7 @@ const ClientUpdates = () => {
             </div>
 
             {/* Filter Tabs */}
-            <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-2 mb-6 flex gap-2">
+            <div className="bg-[#e4dace] dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-2 mb-6 flex gap-2">
                 <button
                     onClick={() => setFilter('all')}
                     className={`flex-1 px-4 py-2 rounded-lg font-medium text-sm transition-colors ${filter === 'all' ? 'bg-[#0891b2] text-white' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800'
@@ -116,7 +116,7 @@ const ClientUpdates = () => {
                 {updates.length > 0 ? updates
                     .filter(update => filter === 'all' || update.action.includes(filter.slice(0, -1)))
                     .map((update) => (
-                        <div key={update._id} className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-6 hover:shadow-lg transition-all">
+                        <div key={update._id} className="bg-[#e4dace] dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-6 hover:shadow-lg transition-all">
                             <div className="flex items-start gap-4">
                                 <div className={`w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0 ${getColorClasses(update.action)}`}>
                                     <span className="material-icons">{getIcon(update.action)}</span>

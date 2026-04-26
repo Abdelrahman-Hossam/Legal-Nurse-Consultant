@@ -140,7 +140,7 @@ const NotesPage = () => {
                         />
                     </div>
 
-            <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm p-6 mb-6">
+            <div className="bg-[#e4dace] dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm p-6 mb-6">
                 <div className="flex items-center gap-4">
                     <label className="text-sm font-medium">Select Case:</label>
                     <select
@@ -163,7 +163,7 @@ const NotesPage = () => {
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 <div className="lg:col-span-2 space-y-6">
-                    <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm p-6">
+                    <div className="bg-[#e4dace] dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm p-6">
                         <h3 className="font-bold text-lg mb-4">Add New Note</h3>
                         <input
                             type="text"
@@ -206,7 +206,7 @@ const NotesPage = () => {
                             <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-[#0891b2]"></div>
                         </div>
                     ) : notes.length === 0 ? (
-                        <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm p-12 text-center">
+                        <div className="bg-[#e4dace] dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm p-12 text-center">
                             <span className="material-icons text-6xl text-slate-300 mb-4">note</span>
                             <p className="text-slate-500">No notes yet. Create your first note above.</p>
                         </div>
@@ -217,7 +217,7 @@ const NotesPage = () => {
                             const displayInitial = displayName.charAt(0).toUpperCase();
 
                             return (
-                                <div key={note._id} className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm p-6">
+                                <div key={note._id} className="bg-[#e4dace] dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm p-6">
                                     <div className="flex items-start gap-4">
                                         <div className="w-12 h-12 rounded-full bg-[#1f3b61]/10 flex items-center justify-center text-[#1f3b61] text-sm font-bold ring-2 ring-white dark:ring-slate-800">
                                             {displayInitial}
@@ -276,7 +276,7 @@ const NotesPage = () => {
                 </div>
 
                 <div className="space-y-6">
-                    <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm p-6">
+                    <div className="bg-[#e4dace] dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm p-6">
                         <h3 className="font-bold text-lg mb-4">Quick Tags</h3>
                         <div className="flex flex-wrap gap-2">
                             <button
@@ -319,7 +319,7 @@ const NotesPage = () => {
                     </div>
 
                     {stats && (
-                        <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm p-6">
+                        <div className="bg-[#e4dace] dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm p-6">
                             <h3 className="font-bold text-lg mb-4">Activity Summary</h3>
                             <div className="space-y-3">
                                 <div className="flex items-center justify-between">

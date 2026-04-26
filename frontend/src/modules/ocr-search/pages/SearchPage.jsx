@@ -85,7 +85,7 @@ const SearchPage = () => {
                         </div>
 
             {/* Search Form */}
-            <form onSubmit={handleSearch} className="bg-white dark:bg-slate-800/50 p-6 rounded-xl border border-slate-200 dark:border-[#0891b2]/10 mb-6">
+            <form onSubmit={handleSearch} className="bg-[#e4dace] dark:bg-slate-800/50 p-6 rounded-xl border border-slate-200 dark:border-[#0891b2]/10 mb-6">
                 <div className="relative mb-4">
                     <span className="material-icons absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 text-2xl">search</span>
                     <input
@@ -134,7 +134,7 @@ const SearchPage = () => {
             </form>
 
             {/* Results */}
-            <div className="bg-white dark:bg-slate-800/40 rounded-xl border border-slate-200 dark:border-[#0891b2]/10 p-6">
+            <div className="bg-[#e4dace] dark:bg-slate-800/40 rounded-xl border border-slate-200 dark:border-[#0891b2]/10 p-6">
                 <h2 className="text-lg font-bold text-slate-900 dark:text-white mb-4">
                     Search Results ({results.length})
                 </h2>

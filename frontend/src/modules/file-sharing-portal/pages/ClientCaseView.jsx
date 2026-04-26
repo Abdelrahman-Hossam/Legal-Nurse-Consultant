@@ -81,7 +81,7 @@ const ClientCaseView = () => {
                 </div>
 
                 {/* Case Progress Timeline */}
-                <div className="bg-white dark:bg-slate-900 rounded-xl p-8 mb-8 border border-slate-200 dark:border-slate-800 shadow-sm">
+                <div className="bg-[#e4dace] dark:bg-slate-900 rounded-xl p-8 mb-8 border border-slate-200 dark:border-slate-800 shadow-sm">
                     <div className="flex items-center justify-between mb-8">
                         <h3 className="font-bold text-lg flex items-center gap-2">
                             <span className="material-icons text-[#0891b2]">analytics</span>
@@ -123,7 +123,7 @@ const ClientCaseView = () => {
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                     {/* Shared Documents */}
                     <div className="lg:col-span-2 space-y-8">
-                        <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
+                        <div className="bg-[#e4dace] dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
                             <div className="px-6 py-4 border-b border-slate-200 dark:border-slate-800 flex justify-between items-center bg-slate-50/50 dark:bg-slate-800/30">
                                 <h3 className="font-bold flex items-center gap-2">
                                     <span className="material-icons text-[#0891b2]">folder_shared</span>
@@ -165,7 +165,7 @@ const ClientCaseView = () => {
                         </div>
 
                         {/* Recent Messages */}
-                        <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
+                        <div className="bg-[#e4dace] dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
                             <div className="px-6 py-4 border-b border-slate-200 dark:border-slate-800 flex justify-between items-center bg-slate-50/50 dark:bg-slate-800/30">
                                 <h3 className="font-bold flex items-center gap-2">
                                     <span className="material-icons text-[#0891b2]">chat_bubble_outline</span>
@@ -226,7 +226,7 @@ const ClientCaseView = () => {
                         </div>
 
                         {/* Consultant Card */}
-                        <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm p-6 text-center">
+                        <div className="bg-[#e4dace] dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm p-6 text-center">
                             <div className="relative inline-block mb-4">
                                 <div className="w-20 h-20 rounded-full mx-auto border-4 border-[#0891b2]/10 bg-gradient-to-br from-blue-400 to-blue-600"></div>
                                 <span className="absolute bottom-1 right-1 w-4 h-4 bg-emerald-500 border-2 border-white dark:border-slate-900 rounded-full"></span>
@@ -259,7 +259,7 @@ const ClientCaseView = () => {
                             <h3 className="font-bold text-sm mb-4 text-slate-500 uppercase tracking-widest">Case Resources</h3>
                             <ul className="space-y-4">
                                 <li className="flex items-start gap-3 group cursor-pointer">
-                                    <div className="w-8 h-8 rounded bg-white dark:bg-slate-800 shadow-sm flex items-center justify-center group-hover:text-[#0891b2]">
+                                    <div className="w-8 h-8 rounded bg-[#e4dace] dark:bg-slate-800 shadow-sm flex items-center justify-center group-hover:text-[#0891b2]">
                                         <span className="material-icons text-lg">help_outline</span>
                                     </div>
                                     <div>
@@ -268,7 +268,7 @@ const ClientCaseView = () => {
                                     </div>
                                 </li>
                                 <li className="flex items-start gap-3 group cursor-pointer">
-                                    <div className="w-8 h-8 rounded bg-white dark:bg-slate-800 shadow-sm flex items-center justify-center group-hover:text-[#0891b2]">
+                                    <div className="w-8 h-8 rounded bg-[#e4dace] dark:bg-slate-800 shadow-sm flex items-center justify-center group-hover:text-[#0891b2]">
                                         <span className="material-icons text-lg">schedule</span>
                                     </div>
                                     <div>
@@ -277,7 +277,7 @@ const ClientCaseView = () => {
                                     </div>
                                 </li>
                                 <li className="flex items-start gap-3 group cursor-pointer">
-                                    <div className="w-8 h-8 rounded bg-white dark:bg-slate-800 shadow-sm flex items-center justify-center group-hover:text-[#0891b2]">
+                                    <div className="w-8 h-8 rounded bg-[#e4dace] dark:bg-slate-800 shadow-sm flex items-center justify-center group-hover:text-[#0891b2]">
                                         <span className="material-icons text-lg">security</span>
                                     </div>
                                     <div>

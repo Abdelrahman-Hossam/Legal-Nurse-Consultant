@@ -101,7 +101,7 @@ const MessagesPage = () => {
     const currentUserId = currentUser?._id || currentUser?.id;
 
     return (
-        <div className="flex h-[calc(100vh-8rem)] bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 overflow-hidden">
+        <div className="flex h-[calc(100vh-8rem)] bg-[#e4dace] dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 overflow-hidden">
             {/* Conversations List */}
             <div className="w-full md:w-80 border-r border-slate-200 dark:border-slate-800 flex flex-col">
                 <div className="p-4 border-b border-slate-200 dark:border-slate-800">
@@ -194,7 +194,7 @@ const MessagesPage = () => {
                                                 )}
                                                 <div className={`rounded-lg p-3 ${isOwn
                                                     ? 'bg-[#0891b2] text-white'
-                                                    : 'bg-white dark:bg-slate-800 text-slate-900 dark:text-white border border-slate-200 dark:border-slate-700'
+                                                    : 'bg-[#e4dace] dark:bg-slate-800 text-slate-900 dark:text-white border border-slate-200 dark:border-slate-700'
                                                     }`}>
                                                     <p className="text-sm">{msg.content}</p>
                                                     {msg.attachments?.length > 0 && (

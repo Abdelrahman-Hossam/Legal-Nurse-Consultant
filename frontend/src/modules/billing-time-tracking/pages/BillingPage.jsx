@@ -218,20 +218,20 @@ const BillingPage = () => {
                                 watermark={pagesTopBarWatermarkWord('Billing')}
                             >
                                 <div className={`flex flex-wrap items-center gap-3 ${pagesTopBarUiSansClass}`}>
-                                    <button type="button" onClick={handleExportCSV} className={pagesTopBarSecondaryClass}>
-                                        <span className="material-icons text-sm">download</span>
-                                        Export CSV
-                                    </button>
                                     <button type="button" onClick={() => setShowManualEntryModal(true)} className={pagesTopBarPrimaryClass}>
                                         <span className="material-icons text-sm">add</span>
                                         Manual Entry
+                                    </button>
+                                    <button type="button" onClick={handleExportCSV} className={pagesTopBarSecondaryClass}>
+                                        <span className="material-icons text-sm">download</span>
+                                        Export CSV
                                     </button>
                                 </div>
                             </PagesTopBar>
                         </div>
 
             {/* Active Timer Widget */}
-            <div className="mb-8 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl p-5 shadow-sm">
+            <div className="mb-8 bg-[#e4dace] dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl p-5 shadow-sm">
                 <div className="grid grid-cols-1 md:grid-cols-12 gap-6 items-center">
                         <div className="md:col-span-4">
                             <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1">
@@ -299,7 +299,7 @@ const BillingPage = () => {
             <div className="grid grid-cols-1 xl:grid-cols-3 gap-8">
                 {/* Recent Entries Table */}
                 <div className="xl:col-span-2 space-y-6">
-                    <div className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl overflow-hidden shadow-sm">
+                    <div className="bg-[#e4dace] dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl overflow-hidden shadow-sm">
                         <div className="p-5 border-b border-slate-100 dark:border-slate-700 flex items-center justify-between">
                             <h3 className="font-bold text-slate-800 dark:text-white">Recent Time Entries</h3>
                             <div className="flex items-center gap-2">
@@ -318,7 +318,7 @@ const BillingPage = () => {
                         <div className="overflow-x-auto">
                             <table className="w-full text-left border-collapse">
                                 <thead>
-                                    <tr className="bg-slate-50 dark:bg-slate-900/50 text-slate-500 dark:text-slate-400 text-xs font-semibold uppercase">
+                                    <tr className="bg-[#e4dace] dark:bg-slate-900/50 text-slate-500 dark:text-slate-400 text-xs font-semibold uppercase">
                                         <th className="px-6 py-4">Date & Consultant</th>
                                         <th className="px-6 py-4">Matter / Description</th>
                                         <th className="px-6 py-4 text-center">Duration</th>
@@ -326,7 +326,7 @@ const BillingPage = () => {
                                         <th className="px-6 py-4 text-right">Actions</th>
                                     </tr>
                                 </thead>
-                                <tbody className="divide-y divide-slate-100 dark:divide-slate-700">
+                                <tbody className="bg-[#f3efe5] dark:bg-slate-900 divide-y divide-slate-100 dark:divide-slate-700">
                                     {loading ? (
                                         <tr>
                                             <td colSpan="5" className="px-6 py-12 text-center text-slate-500">
@@ -338,7 +338,7 @@ const BillingPage = () => {
                                         </tr>
                                     ) : displayTimeEntries.length > 0 ? (
                                         displayTimeEntries.map((entry) => (
-                                            <tr key={entry._id || entry.id} className="hover:bg-slate-50 dark:hover:bg-slate-700/30 transition">
+                                            <tr key={entry._id || entry.id} className="hover:bg-[#f3efe5] dark:hover:bg-slate-700/30 transition">
                                                 <td className="px-6 py-4">
                                                     <div className="text-sm font-medium">{new Date(entry.date || entry.createdAt).toLocaleDateString()}</div>
                                                     <div className="text-xs text-slate-400">{entry.user?.name || entry.consultant || 'N/A'}</div>
@@ -419,7 +419,7 @@ const BillingPage = () => {
                     </div>
 
                     {/* Invoice Management */}
-                    <div className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl overflow-hidden shadow-sm">
+                    <div className="bg-[#e4dace] dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl overflow-hidden shadow-sm">
                         <div className="p-5 border-b border-slate-100 dark:border-slate-700 flex items-center justify-between">
                             <h3 className="font-bold text-slate-800 dark:text-white">Recent Invoices</h3>
                             <button className="text-[#1f3b61] dark:text-slate-300">

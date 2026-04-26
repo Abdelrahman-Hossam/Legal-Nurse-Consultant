@@ -153,7 +153,7 @@ const ReportsPage = () => {
                     {templates.map((template) => (
                         <div
                             key={template.id}
-                            className="group bg-white dark:bg-[#0891b2]/5 border border-slate-200 dark:border-[#0891b2]/10 rounded-xl p-5 hover:border-[#0891b2]/50 transition-all cursor-pointer shadow-sm hover:shadow-md"
+                            className="group bg-[#e4dace] dark:bg-[#0891b2]/5 border border-slate-200 dark:border-[#0891b2]/10 rounded-xl p-5 hover:border-[#0891b2]/50 transition-all cursor-pointer shadow-sm hover:shadow-md"
                             onClick={() => handleGenerateReport(template.id)}
                         >
                             <div className="w-12 h-12 rounded-lg bg-[#0891b2]/10 text-[#0891b2] flex items-center justify-center mb-4 group-hover:bg-[#0891b2] group-hover:text-white transition-colors">
@@ -178,10 +178,10 @@ const ReportsPage = () => {
                     </h2>
                     <button className="text-[#0891b2] text-sm font-semibold hover:underline">View All Archive</button>
                 </div>
-                <div className="bg-white dark:bg-[#0891b2]/5 border border-slate-200 dark:border-[#0891b2]/10 rounded-xl overflow-hidden shadow-sm">
+                <div className="bg-[#f3efe5] dark:bg-[#0891b2]/5 border border-slate-200 dark:border-[#0891b2]/10 rounded-xl overflow-hidden shadow-sm">
                     <table className="w-full text-left border-collapse">
                         <thead>
-                            <tr className="bg-slate-50 dark:bg-[#0891b2]/10 border-b border-slate-200 dark:border-[#0891b2]/10">
+                            <tr className="bg-[#e4dace] dark:bg-[#0891b2]/10 border-b border-slate-200 dark:border-[#0891b2]/10">
                                 <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider text-slate-500">Report Details</th>
                                 <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider text-slate-500">Case ID</th>
                                 <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider text-slate-500">Generated Date</th>
@@ -193,7 +193,7 @@ const ReportsPage = () => {
                                 </th>
                             </tr>
                         </thead>
-                        <tbody className="divide-y divide-slate-200 dark:divide-[#0891b2]/10">
+                        <tbody className="bg-[#f3efe5] dark:bg-[#0891b2]/5 divide-y divide-slate-200 dark:divide-[#0891b2]/10">
                             {recentReports.length === 0 ? (
                                 <tr>
                                     <td colSpan="5" className="px-6 py-12 text-center text-slate-500">
@@ -202,7 +202,7 @@ const ReportsPage = () => {
                                     </td>
                                 </tr>
                             ) : recentReports.map((report) => (
-                                <tr key={report._id} className="hover:bg-slate-50/50 dark:hover:bg-[#0891b2]/5 transition-colors">
+                                <tr key={report._id} className="hover:bg-[#f3efe5] dark:hover:bg-[#0891b2]/5 transition-colors">
                                     <td className="px-6 py-4">
                                         <div className="flex items-center gap-3">
                                             <span className="material-icons text-[#0891b2]">picture_as_pdf</span>
@@ -260,7 +260,7 @@ const ReportsPage = () => {
                         </tbody>
                     </table>
                     {recentReports.length > 0 && (
-                        <div className="bg-slate-50 dark:bg-[#0891b2]/10 px-6 py-3 border-t border-slate-200 dark:border-[#0891b2]/10 flex items-center justify-between">
+                        <div className="bg-[#f3efe5] dark:bg-[#0891b2]/10 px-6 py-3 border-t border-slate-200 dark:border-[#0891b2]/10 flex items-center justify-between">
                             <span className="text-xs text-slate-500 font-medium">Showing {recentReports.length} reports</span>
                             <div className="flex gap-2">
                                 <button className="px-3 py-1 text-xs border border-[#0891b2]/20 rounded hover:bg-[#0891b2]/10 transition-colors">

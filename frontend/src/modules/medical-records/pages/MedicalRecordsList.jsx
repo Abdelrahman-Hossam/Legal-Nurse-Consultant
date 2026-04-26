@@ -252,20 +252,20 @@ const MedicalRecordsList = () => {
                                 watermark={pagesTopBarWatermarkWord('Records')}
                             >
                                 <div className={`flex flex-wrap items-center gap-3 ${pagesTopBarUiSansClass}`}>
-                                    <button type="button" className={pagesTopBarSecondaryClass}>
-                                        <span className="material-icons text-sm">filter_list</span>
-                                        Filters
-                                    </button>
                                     <button type="button" onClick={() => setShowUploadModal(true)} className={pagesTopBarPrimaryClass}>
                                         <span className="material-icons text-sm">upload_file</span>
                                         Upload Records
+                                    </button>
+                                    <button type="button" className={pagesTopBarSecondaryClass}>
+                                        <span className="material-icons text-sm">filter_list</span>
+                                        Filters
                                     </button>
                                 </div>
                             </PagesTopBar>
                         </div>
 
             {/* Search & Filter Bar */}
-            <div className="bg-white dark:bg-slate-800/50 p-4 rounded-xl border border-slate-200 dark:border-[#0891b2]/10 mb-6 flex flex-wrap items-center gap-4">
+            <div className="bg-[#e4dace] dark:bg-slate-800/50 p-4 rounded-xl border border-slate-200 dark:border-[#0891b2]/10 mb-6 flex flex-wrap items-center gap-4">
                 <div className="relative flex-1 min-w-[300px]">
                     <span className="material-icons absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-lg">search</span>
                     <input
@@ -292,7 +292,7 @@ const MedicalRecordsList = () => {
 
             {/* Stats Cards */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
-                <div className="bg-white dark:bg-slate-800/40 p-4 rounded-xl border border-slate-200 dark:border-[#0891b2]/10">
+                <div className="bg-[#e4dace] dark:bg-slate-800/40 p-4 rounded-xl border border-slate-200 dark:border-[#0891b2]/10">
                     <div className="flex items-center">
                         <div className="p-3 bg-[#0891b2]/10 rounded-lg text-[#0891b2] mr-4">
                             <span className="material-icons">folder</span>
@@ -303,7 +303,7 @@ const MedicalRecordsList = () => {
                         </div>
                     </div>
                 </div>
-                <div className="bg-white dark:bg-slate-800/40 p-4 rounded-xl border border-slate-200 dark:border-[#0891b2]/10">
+                <div className="bg-[#e4dace] dark:bg-slate-800/40 p-4 rounded-xl border border-slate-200 dark:border-[#0891b2]/10">
                     <div className="flex items-center">
                         <div className="p-3 bg-amber-500/10 rounded-lg text-amber-500 mr-4">
                             <span className="material-icons">pending</span>
@@ -314,7 +314,7 @@ const MedicalRecordsList = () => {
                         </div>
                     </div>
                 </div>
-                <div className="bg-white dark:bg-slate-800/40 p-4 rounded-xl border border-slate-200 dark:border-[#0891b2]/10">
+                <div className="bg-[#e4dace] dark:bg-slate-800/40 p-4 rounded-xl border border-slate-200 dark:border-[#0891b2]/10">
                     <div className="flex items-center">
                         <div className="p-3 bg-green-500/10 rounded-lg text-green-500 mr-4">
                             <span className="material-icons">check_circle</span>
@@ -328,11 +328,11 @@ const MedicalRecordsList = () => {
             </div>
 
             {/* Records Table */}
-            <div className="bg-white dark:bg-slate-800/40 rounded-xl border border-slate-200 dark:border-[#0891b2]/10 shadow-sm overflow-hidden">
+            <div className="bg-[#f3efe5] dark:bg-slate-800/40 rounded-xl border border-slate-200 dark:border-[#0891b2]/10 shadow-sm overflow-hidden">
                 <div className="overflow-x-auto">
                     <table className="w-full text-left border-collapse">
                         <thead>
-                            <tr className="bg-slate-50 dark:bg-[#0891b2]/5 border-b border-slate-200 dark:border-slate-700">
+                            <tr className="bg-[#e4dace] dark:bg-[#0891b2]/5 border-b border-slate-200 dark:border-slate-700">
                                 <th className="px-6 py-4 text-xs font-bold text-slate-500 dark:text-slate-400 uppercase">Document</th>
                                 <th className="px-6 py-4 text-xs font-bold text-slate-500 dark:text-slate-400 uppercase">Case</th>
                                 <th className="px-6 py-4 text-xs font-bold text-slate-500 dark:text-slate-400 uppercase">Provider</th>
@@ -341,7 +341,7 @@ const MedicalRecordsList = () => {
                                 <th className="px-6 py-4 text-xs font-bold text-slate-500 dark:text-slate-400 uppercase text-right">Actions</th>
                             </tr>
                         </thead>
-                        <tbody className="divide-y divide-slate-100 dark:divide-slate-700/50">
+                        <tbody className="bg-[#f3efe5] dark:bg-slate-900 divide-y divide-slate-100 dark:divide-slate-700/50">
                             {loading ? (
                                 <tr>
                                     <td colSpan="6" className="px-6 py-12 text-center text-slate-500">
@@ -357,7 +357,7 @@ const MedicalRecordsList = () => {
                                 </tr>
                             ) : (
                                 records.map((record) => (
-                                    <tr key={record._id} className="hover:bg-slate-50 dark:hover:bg-[#0891b2]/5 transition-colors">
+                                    <tr key={record._id} className="hover:bg-[#f3efe5] dark:hover:bg-[#0891b2]/5 transition-colors">
                                         <td className="px-6 py-4">
                                             <div className="flex items-center">
                                                 <span className="material-icons text-red-500 mr-3">picture_as_pdf</span>
@@ -419,7 +419,7 @@ const MedicalRecordsList = () => {
                 </div>
 
                 {/* Pagination */}
-                <div className="px-6 py-4 bg-slate-50 dark:bg-[#0891b2]/5 flex items-center justify-between border-t border-slate-200 dark:border-slate-700">
+                <div className="px-6 py-4 bg-[#f3efe5] dark:bg-[#0891b2]/5 flex items-center justify-between border-t border-slate-200 dark:border-slate-700">
                     <p className="text-xs text-slate-500">
                         Showing {records.length > 0 ? 1 : 0} to {records.length} of {pagination.total} records
                     </p>

@@ -53,7 +53,7 @@ export function pagesTopBarSplitTitle(first, second) {
 /** Decorative watermark behind the title row (Cases page pattern). */
 export function pagesTopBarWatermarkWord(children) {
     return (
-        <span className="select-none whitespace-nowrap font-playfair text-[clamp(2.5rem,9vw,4.75rem)] font-normal leading-none tracking-tight text-[#1a1409]/[0.09] md:text-[clamp(3rem,10vw,5.75rem)] dark:text-white/[0.06]">
+        <span className="select-none whitespace-nowrap font-playfair text-[clamp(2.5rem,9vw,4.75rem)] font-black leading-none tracking-tight text-[#1a1409]/[0.11] md:text-[clamp(3rem,10vw,5.75rem)] dark:text-white/[0.08]">
             {children}
         </span>
     );
@@ -127,17 +127,20 @@ const PagesTopBar = ({
                     <p className={`${pagesTopBarSubtitleBaseClass} ${subtitleClassName}`.trim()}>{subtitle}</p>
                 ) : null}
             </div>
+            {hasActions ? (
+                <div className={`mt-4 flex flex-wrap items-center gap-3 ${pagesTopBarUiSansClass}`.trim()}>{children}</div>
+            ) : null}
         </div>
     );
 
     const watermarkBlock =
         hasWatermark ? (
             <div
-                className="order-2 flex min-h-[3.5rem] w-full items-center justify-center overflow-visible py-1 md:order-none md:min-h-[5.5rem] md:flex-1 md:self-stretch md:px-3 md:py-0 pointer-events-none"
+                className="order-2 flex min-h-[3.5rem] w-full items-center justify-end overflow-visible py-1 md:order-none md:min-h-[5.5rem] md:flex-1 md:self-stretch md:px-3 md:py-0 pointer-events-none"
                 aria-hidden="true"
             >
                 {typeof watermark === 'string' ? (
-                    <span className="select-none font-playfair text-[clamp(2.75rem,11vw,5.75rem)] font-normal leading-none tracking-tight text-[#1a1409]/[0.08] dark:text-white/[0.06]">
+                    <span className="select-none font-playfair text-[clamp(2.75rem,11vw,5.75rem)] font-black leading-none tracking-tight text-[#1a1409]/[0.1] dark:text-white/[0.08]">
                         {watermark}
                     </span>
                 ) : (
@@ -147,20 +150,7 @@ const PagesTopBar = ({
         ) : null;
 
     const innerRowAlign =
-        hasActions && !hasWatermark
-            ? 'md:items-center'
-            : 'md:items-start';
-
-    const actionsAlign =
-        hasActions && hasWatermark ? 'md:self-center' : '';
-
-    const actionsBlock = hasActions ? (
-        <div
-            className={`order-3 z-10 flex shrink-0 flex-wrap items-center gap-3 md:order-none ${actionsAlign} ${pagesTopBarUiSansClass}`.trim()}
-        >
-            {children}
-        </div>
-    ) : null;
+        'md:items-start';
 
     return (
         <header className={outer}>
@@ -169,7 +159,6 @@ const PagesTopBar = ({
             >
                 {titleBlock}
                 {watermarkBlock}
-                {actionsBlock}
             </div>
         </header>
     );

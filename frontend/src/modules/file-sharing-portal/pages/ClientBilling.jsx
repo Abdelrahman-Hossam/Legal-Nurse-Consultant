@@ -117,21 +117,21 @@ Status: ${invoice.status}
 
             {/* Summary Cards */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-                <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-6">
+                <div className="bg-[#e4dace] dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-6">
                     <div className="flex items-center justify-between mb-2">
                         <span className="text-sm text-slate-500">Total Billed</span>
                         <span className="material-icons text-slate-400">receipt_long</span>
                     </div>
                     <p className="text-3xl font-bold text-slate-900 dark:text-white">{formatCurrency(totalAmount)}</p>
                 </div>
-                <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-6">
+                <div className="bg-[#e4dace] dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-6">
                     <div className="flex items-center justify-between mb-2">
                         <span className="text-sm text-slate-500">Paid</span>
                         <span className="material-icons text-green-500">check_circle</span>
                     </div>
                     <p className="text-3xl font-bold text-green-600">{formatCurrency(paidAmount)}</p>
                 </div>
-                <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-6">
+                <div className="bg-[#e4dace] dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-6">
                     <div className="flex items-center justify-between mb-2">
                         <span className="text-sm text-slate-500">Pending</span>
                         <span className="material-icons text-amber-500">schedule</span>
@@ -141,7 +141,7 @@ Status: ${invoice.status}
             </div>
 
             {/* Filter Tabs */}
-            <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-2 mb-6 flex gap-2">
+            <div className="bg-[#e4dace] dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-2 mb-6 flex gap-2">
                 <button
                     onClick={() => setFilter('all')}
                     className={`flex-1 px-4 py-2 rounded-lg font-medium text-sm transition-colors ${filter === 'all' ? 'bg-[#0891b2] text-white' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800'
@@ -166,10 +166,10 @@ Status: ${invoice.status}
             </div>
 
             {/* Invoices Table */}
-            <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 overflow-hidden">
+            <div className="bg-[#f3efe5] dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 overflow-hidden">
                 {filteredInvoices.length > 0 ? (
                     <table className="w-full">
-                        <thead className="bg-slate-50 dark:bg-slate-800/50 border-b border-slate-200 dark:border-slate-800">
+                        <thead className="bg-[#e4dace] dark:bg-slate-800/50 border-b border-slate-200 dark:border-slate-800">
                             <tr>
                                 <th className="px-6 py-4 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">Invoice</th>
                                 <th className="px-6 py-4 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">Case</th>
@@ -180,9 +180,9 @@ Status: ${invoice.status}
                                 <th className="px-6 py-4 text-right text-xs font-bold text-slate-500 uppercase tracking-wider">Actions</th>
                             </tr>
                         </thead>
-                        <tbody className="divide-y divide-slate-200 dark:divide-slate-800">
+                        <tbody className="bg-[#f3efe5] dark:bg-slate-900 divide-y divide-slate-200 dark:divide-slate-800">
                             {filteredInvoices.map((invoice) => (
-                                <tr key={invoice._id} className="hover:bg-slate-50 dark:hover:bg-slate-800/30 transition-colors">
+                                <tr key={invoice._id} className="hover:bg-[#f3efe5] dark:hover:bg-slate-800/30 transition-colors">
                                     <td className="px-6 py-4">
                                         <div className="font-semibold text-slate-900 dark:text-white">{invoice.invoiceNumber}</div>
                                     </td>

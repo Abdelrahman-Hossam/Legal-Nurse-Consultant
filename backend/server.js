@@ -136,12 +136,25 @@ app.use(cors({
 }));
 
 // Rate limiting
-const limiter = rateLimit({
-    windowMs: (process.env.RATE_LIMIT_WINDOW || 15) * 60 * 1000,
-    max: process.env.RATE_LIMIT_MAX_REQUESTS || 100,
-    message: 'Too many requests from this IP, please try again later'
-});
-app.use('/api', limiter);
+const rateLimitWindowMinutes = Number(process.env.RATE_LIMIT_WINDOW || 15);
+const rateLimitMaxRequests = Number(process.env.RATE_LIMIT_MAX_REQUESTS || 100);
+const isProduction = process.env.NODE_ENV === 'production';
+const rateLimitEnabled =
+    process.env.RATE_LIMIT_ENABLED != null
+        ? process.env.RATE_LIMIT_ENABLED === 'true'
+        : isProduction;
+
+if (rateLimitEnabled) {
+    const limiter = rateLimit({
+        windowMs: rateLimitWindowMinutes * 60 * 1000,
+        max: rateLimitMaxRequests,
+        message: 'Too many requests from this IP, please try again later'
+    });
+    app.use('/api', limiter);
+    logger.info(`🛡️ Rate limit enabled: ${rateLimitMaxRequests} requests / ${rateLimitWindowMinutes} min`);
+} else {
+    logger.warn('🟡 Rate limit disabled for current environment');
+}
 
 // Body parser
 app.use(express.json({ limit: '10mb' }));

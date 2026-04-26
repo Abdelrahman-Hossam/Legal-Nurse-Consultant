@@ -110,7 +110,7 @@ const ClientTimeline = () => {
             </div>
 
             {/* Case Selector */}
-            <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-6 mb-8">
+            <div className="bg-[#e4dace] dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-6 mb-8">
                 <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
                     <div className="flex-1 w-full md:w-auto">
                         <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
@@ -143,7 +143,7 @@ const ClientTimeline = () => {
                     <span className="material-icons animate-spin text-4xl text-[#0891b2]">refresh</span>
                 </div>
             ) : timeline.length === 0 ? (
-                <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-12 text-center">
+                <div className="bg-[#e4dace] dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-12 text-center">
                     <span className="material-icons text-6xl text-slate-300 mb-4">timeline</span>
                     <p className="text-slate-500">No timeline events available for this case yet.</p>
                 </div>
@@ -166,7 +166,7 @@ const ClientTimeline = () => {
                                     </div>
 
                                     {/* Event Card */}
-                                    <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-6 hover:shadow-lg transition-all">
+                                    <div className="bg-[#e4dace] dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-6 hover:shadow-lg transition-all">
                                         <div className="flex items-start justify-between mb-4">
                                             <div>
                                                 <div className="flex items-center gap-3 mb-2 flex-wrap">

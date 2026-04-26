@@ -779,7 +779,7 @@ const CaseDetail = () => {
 
     return (
         <div>
-            <header className="bg-white dark:bg-slate-900 border-b border-[#1f3b61]/10 -mx-8 -mt-8 mb-8 px-8 py-4">
+            <header className="bg-[#f3efe5] dark:bg-slate-900 border-b border-[#1f3b61]/10 -mx-8 -mt-8 mb-8 px-8 py-4">
                 <nav className="flex text-xs text-[#1f3b61]/60 mb-2">
                     <Link to={dashboardPath}>Dashboard</Link>
                     <span className="material-icons text-xs mx-1">chevron_right</span>
@@ -804,7 +804,7 @@ const CaseDetail = () => {
             </header>
 
             {/* Tabs */}
-            <div className="border-b border-slate-200 dark:border-slate-800 mb-6">
+            <div className="border-b border-slate-200 dark:border-slate-800 mb-6 bg-[#e4dace] dark:bg-slate-900 rounded-xl px-4">
                 <nav className="flex space-x-8">
                     {tabs.map((tab) => (
                         <button
@@ -827,7 +827,7 @@ const CaseDetail = () => {
                 {activeTab === 'overview' && (
                     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                         <div className="lg:col-span-2 space-y-6">
-                            <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-6">
+                            <div className="bg-[#f3efe5] dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-6">
                                 <h3 className="text-lg font-bold mb-4">Case Information</h3>
                                 <div className="grid grid-cols-2 gap-4">
                                     <div>
@@ -884,7 +884,7 @@ const CaseDetail = () => {
                             </div>
                         </div>
                         <div className="space-y-6">
-                            <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-6">
+                            <div className="bg-[#e4dace] dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-6">
                                 <div className="flex items-start justify-between gap-2 mb-4">
                                     <h3 className="text-lg font-bold">Assigned consultant</h3>
                                     {canAssignConsultant && (
@@ -958,10 +958,10 @@ const CaseDetail = () => {
                                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#801829]"></div>
                             </div>
                         ) : medicalRecords.length > 0 ? (
-                            <div className="bg-white dark:bg-slate-900 rounded-xl border-2 border-slate-200 dark:border-slate-700 shadow-md overflow-hidden">
+                            <div className="bg-[#f3efe5] dark:bg-slate-900 rounded-xl border-2 border-slate-200 dark:border-slate-700 shadow-md overflow-hidden">
                                 <div className="overflow-x-auto">
                                     <table className="w-full">
-                                        <thead className="bg-slate-50 dark:bg-slate-800/50 text-[10px] font-bold uppercase text-slate-400 border-b-2 border-slate-200 dark:border-slate-700">
+                                        <thead className="bg-[#e4dace] dark:bg-slate-800/50 text-[10px] font-bold uppercase text-slate-500 border-b-2 border-slate-200 dark:border-slate-700">
                                             <tr>
                                                 <th className="px-6 py-3 text-left">File Name</th>
                                                 <th className="px-6 py-3 text-left">Type</th>
@@ -971,9 +971,9 @@ const CaseDetail = () => {
                                                 <th className="px-6 py-3 text-right">Actions</th>
                                             </tr>
                                         </thead>
-                                        <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+                                        <tbody className="bg-[#f3efe5] dark:bg-slate-900 divide-y divide-slate-100 dark:divide-slate-800">
                                             {medicalRecords.map((record) => (
-                                                <tr key={record._id} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/30 transition-colors">
+                                                <tr key={record._id} className="hover:bg-[#f3efe5] dark:hover:bg-slate-800/30 transition-colors">
                                                     <td className="px-6 py-4">
                                                         <div className="flex items-center gap-2">
                                                             <span className="material-icons text-slate-400 text-sm">description</span>
@@ -1042,12 +1042,12 @@ const CaseDetail = () => {
                                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#801829]"></div>
                             </div>
                         ) : timelineEvents.length > 0 ? (
-                            <div className="bg-white dark:bg-slate-900 rounded-xl border-2 border-slate-200 dark:border-slate-700 shadow-md p-6">
+                            <div className="bg-[#e4dace] dark:bg-slate-900 rounded-xl border-2 border-slate-200 dark:border-slate-700 shadow-md p-6">
                                 <div className="relative space-y-4">
                                     {timelineEvents.sort((a, b) => new Date(a.date) - new Date(b.date)).map((event, idx) => (
                                         <div key={event._id || idx} className="relative pl-8 pb-8 border-l-4 border-[#801829] last:pb-0">
                                             <div className="absolute -left-2 top-0 w-4 h-4 rounded-full bg-[#801829] border-4 border-white dark:border-slate-900"></div>
-                                            <div className="bg-slate-50 dark:bg-slate-800 rounded-lg p-4 ml-4 hover:shadow-md transition-shadow">
+                                            <div className="bg-[#e4dace] dark:bg-slate-800 rounded-lg p-4 ml-4 hover:shadow-md transition-shadow">
                                                 <div className="flex items-start justify-between mb-2">
                                                     <div className="flex-1">
                                                         <div className="flex items-center gap-2 mb-1">
@@ -1084,7 +1084,7 @@ const CaseDetail = () => {
                                 </div>
                             </div>
                         ) : (
-                            <div className="bg-white dark:bg-slate-900 rounded-xl border-2 border-slate-200 dark:border-slate-700 shadow-md p-12">
+                            <div className="bg-[#e4dace] dark:bg-slate-900 rounded-xl border-2 border-slate-200 dark:border-slate-700 shadow-md p-12">
                                 <div className="text-center text-slate-500">
                                     <span className="material-icons text-6xl text-slate-300 mb-4">timeline</span>
                                     <p>No timeline events yet. Add an event to get started.</p>
@@ -1116,7 +1116,7 @@ const CaseDetail = () => {
                                         <h4 className="text-md font-bold mb-4">Identified Deviations</h4>
                                         <div className="space-y-3">
                                             {analysis.breaches.map((breach, idx) => (
-                                                <div key={idx} className="bg-white dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-700 rounded-lg p-4 hover:shadow-md transition-shadow">
+                                                <div key={idx} className="bg-[#e4dace] dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-700 rounded-lg p-4 hover:shadow-md transition-shadow">
                                                     <div className="flex items-start justify-between mb-2">
                                                         <h5 className="text-sm font-bold text-slate-900 dark:text-white">{breach.description}</h5>
                                                         <span className={`px-2 py-1 rounded-full text-xs font-bold ${breach.severity === 'high' ? 'bg-red-100 text-red-700' :
@@ -1138,19 +1138,19 @@ const CaseDetail = () => {
                                 {analysis.standardsOfCare && analysis.standardsOfCare.length > 0 && (
                                     <div>
                                         <h4 className="text-md font-bold mb-4">Standards of Care</h4>
-                                        <div className="bg-white dark:bg-slate-900 rounded-xl border-2 border-slate-200 dark:border-slate-700 shadow-md overflow-hidden">
+                                        <div className="bg-[#f3efe5] dark:bg-slate-900 rounded-xl border-2 border-slate-200 dark:border-slate-700 shadow-md overflow-hidden">
                                             <div className="overflow-x-auto">
                                                 <table className="w-full">
-                                                    <thead className="bg-slate-50 dark:bg-slate-800/50 text-[10px] font-bold uppercase text-slate-400 border-b-2 border-slate-200 dark:border-slate-700">
+                                                    <thead className="bg-[#e4dace] dark:bg-slate-800/50 text-[10px] font-bold uppercase text-slate-500 border-b-2 border-slate-200 dark:border-slate-700">
                                                         <tr>
                                                             <th className="px-6 py-3 text-left">Category</th>
                                                             <th className="px-6 py-3 text-left">Standard</th>
                                                             <th className="px-6 py-3 text-left">Assessment</th>
                                                         </tr>
                                                     </thead>
-                                                    <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+                                                    <tbody className="bg-[#f3efe5] dark:bg-slate-900 divide-y divide-slate-100 dark:divide-slate-800">
                                                         {analysis.standardsOfCare.map((item, idx) => (
-                                                            <tr key={idx} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/30 transition-colors">
+                                                            <tr key={idx} className="hover:bg-[#f3efe5] dark:hover:bg-slate-800/30 transition-colors">
                                                                 <td className="px-6 py-4 text-sm font-semibold">{item.category}</td>
                                                                 <td className="px-6 py-4 text-sm">{item.standard}</td>
                                                                 <td className="px-6 py-4 text-sm">{item.assessment}</td>
@@ -1187,10 +1187,10 @@ const CaseDetail = () => {
                                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#801829]"></div>
                             </div>
                         ) : damages.length > 0 ? (
-                            <div className="bg-white dark:bg-slate-900 rounded-xl border-2 border-slate-200 dark:border-slate-700 shadow-md overflow-hidden">
+                            <div className="bg-[#f3efe5] dark:bg-slate-900 rounded-xl border-2 border-slate-200 dark:border-slate-700 shadow-md overflow-hidden">
                                 <div className="overflow-x-auto">
                                     <table className="w-full">
-                                        <thead className="bg-slate-50 dark:bg-slate-800/50 text-[10px] font-bold uppercase text-slate-400 border-b-2 border-slate-200 dark:border-slate-700">
+                                        <thead className="bg-[#e4dace] dark:bg-slate-800/50 text-[10px] font-bold uppercase text-slate-500 border-b-2 border-slate-200 dark:border-slate-700">
                                             <tr>
                                                 <th className="px-6 py-3 text-left">Category</th>
                                                 <th className="px-6 py-3 text-left">Description</th>
@@ -1199,9 +1199,9 @@ const CaseDetail = () => {
                                                 <th className="px-6 py-3 text-left">Status</th>
                                             </tr>
                                         </thead>
-                                        <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+                                        <tbody className="bg-[#f3efe5] dark:bg-slate-900 divide-y divide-slate-100 dark:divide-slate-800">
                                             {damages.map((item) => (
-                                                <tr key={item._id} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/30 transition-colors">
+                                                <tr key={item._id} className="hover:bg-[#f3efe5] dark:hover:bg-slate-800/30 transition-colors">
                                                     <td className="px-6 py-4">
                                                         <span className="text-sm font-semibold capitalize">{item.category}</span>
                                                         {item.type && <p className="text-xs text-slate-500">{item.type}</p>}
@@ -1252,10 +1252,10 @@ const CaseDetail = () => {
                                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#801829]"></div>
                             </div>
                         ) : tasks.length > 0 ? (
-                            <div className="bg-white dark:bg-slate-900 rounded-xl border-2 border-slate-200 dark:border-slate-700 shadow-md overflow-hidden">
+                            <div className="bg-[#f3efe5] dark:bg-slate-900 rounded-xl border-2 border-slate-200 dark:border-slate-700 shadow-md overflow-hidden">
                                 <div className="overflow-x-auto">
                                     <table className="w-full">
-                                        <thead className="bg-slate-50 dark:bg-slate-800/50 text-[10px] font-bold uppercase text-slate-400 border-b-2 border-slate-200 dark:border-slate-700">
+                                        <thead className="bg-[#e4dace] dark:bg-slate-800/50 text-[10px] font-bold uppercase text-slate-500 border-b-2 border-slate-200 dark:border-slate-700">
                                             <tr>
                                                 <th className="px-6 py-3 text-left">Task</th>
                                                 <th className="px-6 py-3 text-left">Assigned To</th>
@@ -1264,9 +1264,9 @@ const CaseDetail = () => {
                                                 <th className="px-6 py-3 text-left">Status</th>
                                             </tr>
                                         </thead>
-                                        <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+                                        <tbody className="bg-[#f3efe5] dark:bg-slate-900 divide-y divide-slate-100 dark:divide-slate-800">
                                             {tasks.map((task) => (
-                                                <tr key={task._id} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/30 transition-colors">
+                                                <tr key={task._id} className="hover:bg-[#f3efe5] dark:hover:bg-slate-800/30 transition-colors">
                                                     <td className="px-6 py-4">
                                                         <div className="text-sm font-semibold">{task.title}</div>
                                                         <div className="text-xs text-slate-500">{task.description}</div>
@@ -1323,7 +1323,7 @@ const CaseDetail = () => {
                         ) : notes.length > 0 ? (
                             <div className="grid grid-cols-1 gap-4">
                                 {notes.map((note) => (
-                                    <div key={note._id} className="bg-white dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-700 rounded-lg p-4 hover:shadow-md transition-shadow">
+                                    <div key={note._id} className="bg-[#e4dace] dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-700 rounded-lg p-4 hover:shadow-md transition-shadow">
                                         <div className="flex items-start justify-between mb-2">
                                             <div className="flex-1">
                                                 <h4 className="text-sm font-bold text-slate-900 dark:text-white">{note.title}</h4>

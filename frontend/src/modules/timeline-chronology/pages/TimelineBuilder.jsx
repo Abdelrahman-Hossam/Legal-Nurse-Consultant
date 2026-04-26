@@ -167,21 +167,21 @@ const TimelineBuilder = () => {
 
             {/* Timeline Stats */}
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-                <div className="bg-white dark:bg-slate-800/40 p-4 rounded-xl border">
+                <div className="bg-[#e4dace] dark:bg-slate-800/40 p-4 rounded-xl border">
                     <p className="text-xs uppercase font-bold text-slate-500">Total Events</p>
                     <p className="text-2xl font-bold text-slate-900 dark:text-white">{events.length}</p>
                 </div>
-                <div className="bg-white dark:bg-slate-800/40 p-4 rounded-xl border">
+                <div className="bg-[#e4dace] dark:bg-slate-800/40 p-4 rounded-xl border">
                     <p className="text-xs uppercase font-bold text-slate-500">Date Range</p>
                     <p className="text-sm font-bold text-slate-900 dark:text-white">
                         {events.length > 0 ? `${new Date(events[0].date).toLocaleDateString()} - ${new Date(events[events.length - 1].date).toLocaleDateString()}` : 'N/A'}
                     </p>
                 </div>
-                <div className="bg-white dark:bg-slate-800/40 p-4 rounded-xl border">
+                <div className="bg-[#e4dace] dark:bg-slate-800/40 p-4 rounded-xl border">
                     <p className="text-xs uppercase font-bold text-slate-500">Status</p>
                     <p className="text-sm font-bold text-slate-900 dark:text-white capitalize">{timeline?.status || 'Draft'}</p>
                 </div>
-                <div className="bg-white dark:bg-slate-800/40 p-4 rounded-xl border">
+                <div className="bg-[#e4dace] dark:bg-slate-800/40 p-4 rounded-xl border">
                     <p className="text-xs uppercase font-bold text-slate-500">Citations</p>
                     <p className="text-2xl font-bold text-slate-900 dark:text-white">
                         {events.reduce((sum, e) => sum + (e.citations?.length || 0), 0)}
@@ -190,7 +190,7 @@ const TimelineBuilder = () => {
             </div>
 
             {/* Timeline Events */}
-            <div className="bg-white dark:bg-slate-800/40 rounded-xl border p-6">
+            <div className="bg-[#e4dace] dark:bg-slate-800/40 rounded-xl border p-6">
                 {events.length === 0 ? (
                     <div className="text-center py-12 text-slate-500">
                         <span className="material-icons text-6xl text-slate-300 mb-4">timeline</span>

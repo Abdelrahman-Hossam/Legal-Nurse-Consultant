@@ -148,7 +148,7 @@ const DamagesTracking = () => {
                             </PagesTopBar>
                         </div>
 
-            <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm p-6 mb-6">
+            <div className="bg-[#e4dace] dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm p-6 mb-6">
                 <div className="flex items-center gap-4">
                     <label className="text-sm font-medium">Select Case:</label>
                     <select
@@ -174,7 +174,7 @@ const DamagesTracking = () => {
 
             {!loading && (
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-                    <div className="bg-white dark:bg-slate-900 p-6 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm">
+                    <div className="bg-[#e4dace] dark:bg-slate-900 p-6 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm">
                         <div className="flex items-center gap-3 mb-2">
                             <div className="w-10 h-10 rounded-lg bg-purple-100 dark:bg-purple-900/30 flex items-center justify-center">
                                 <span className="material-icons text-purple-600">attach_money</span>
@@ -185,7 +185,7 @@ const DamagesTracking = () => {
                             </div>
                         </div>
                     </div>
-                    <div className="bg-white dark:bg-slate-900 p-6 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm">
+                    <div className="bg-[#e4dace] dark:bg-slate-900 p-6 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm">
                         <div className="flex items-center gap-3 mb-2">
                             <div className="w-10 h-10 rounded-lg bg-green-100 dark:bg-green-900/30 flex items-center justify-center">
                                 <span className="material-icons text-green-600">verified</span>
@@ -196,7 +196,7 @@ const DamagesTracking = () => {
                             </div>
                         </div>
                     </div>
-                    <div className="bg-white dark:bg-slate-900 p-6 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm">
+                    <div className="bg-[#e4dace] dark:bg-slate-900 p-6 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm">
                         <div className="flex items-center gap-3 mb-2">
                             <div className="w-10 h-10 rounded-lg bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center">
                                 <span className="material-icons text-blue-600">calculate</span>
@@ -207,7 +207,7 @@ const DamagesTracking = () => {
                             </div>
                         </div>
                     </div>
-                    <div className="bg-white dark:bg-slate-900 p-6 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm">
+                    <div className="bg-[#e4dace] dark:bg-slate-900 p-6 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm">
                         <div className="flex items-center gap-3 mb-2">
                             <div className="w-10 h-10 rounded-lg bg-orange-100 dark:bg-orange-900/30 flex items-center justify-center">
                                 <span className="material-icons text-orange-600">description</span>
@@ -221,13 +221,13 @@ const DamagesTracking = () => {
                 </div>
             )}
 
-            <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm">
+            <div className="bg-[#f3efe5] dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm">
                 <div className="px-6 py-5 border-b border-slate-200 dark:border-slate-800">
                     <h2 className="font-bold text-lg text-slate-800 dark:text-white">Damage Items</h2>
                 </div>
                 <div className="overflow-x-auto">
                     <table className="w-full">
-                        <thead className="bg-slate-50 dark:bg-slate-800/50 text-[10px] font-bold uppercase text-slate-400">
+                        <thead className="bg-[#e4dace] dark:bg-slate-800/50 text-[10px] font-bold uppercase text-slate-500">
                             <tr>
                                 <th className="px-6 py-3 text-left">Category</th>
                                 <th className="px-6 py-3 text-left">Description</th>
@@ -238,9 +238,9 @@ const DamagesTracking = () => {
                                 <th className="px-6 py-3 text-right">Actions</th>
                             </tr>
                         </thead>
-                        <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+                        <tbody className="bg-[#f3efe5] dark:bg-slate-900 divide-y divide-slate-100 dark:divide-slate-800">
                             {!loading && damages.length > 0 ? damages.map((item) => (
-                                <tr key={item._id} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/30 transition-colors">
+                                <tr key={item._id} className="hover:bg-[#f3efe5] dark:hover:bg-slate-800/30 transition-colors">
                                     <td className="px-6 py-4">
                                         <span className="text-sm font-semibold text-slate-900 dark:text-white capitalize">{item.category}</span>
                                         <p className="text-xs text-slate-500">{item.type}</p>

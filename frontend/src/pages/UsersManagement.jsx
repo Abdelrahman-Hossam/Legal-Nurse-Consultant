@@ -183,7 +183,7 @@ const UsersManagement = () => {
 
             {/* Stats Cards */}
             <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-                <div className="bg-white dark:bg-slate-900 p-6 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm">
+                <div className="bg-[#e4dace] dark:bg-slate-900 p-6 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm">
                     <div className="flex items-center gap-3 mb-2">
                         <div className="w-10 h-10 rounded-lg bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center">
                             <span className="material-icons text-blue-600">people</span>
@@ -194,7 +194,7 @@ const UsersManagement = () => {
                         </div>
                     </div>
                 </div>
-                <div className="bg-white dark:bg-slate-900 p-6 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm">
+                <div className="bg-[#e4dace] dark:bg-slate-900 p-6 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm">
                     <div className="flex items-center gap-3 mb-2">
                         <div className="w-10 h-10 rounded-lg bg-green-100 dark:bg-green-900/30 flex items-center justify-center">
                             <span className="material-icons text-green-600">check_circle</span>
@@ -205,7 +205,7 @@ const UsersManagement = () => {
                         </div>
                     </div>
                 </div>
-                <div className="bg-white dark:bg-slate-900 p-6 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm">
+                <div className="bg-[#e4dace] dark:bg-slate-900 p-6 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm">
                     <div className="flex items-center gap-3 mb-2">
                         <div className="w-10 h-10 rounded-lg bg-purple-100 dark:bg-purple-900/30 flex items-center justify-center">
                             <span className="material-icons text-purple-600">admin_panel_settings</span>
@@ -216,7 +216,7 @@ const UsersManagement = () => {
                         </div>
                     </div>
                 </div>
-                <div className="bg-white dark:bg-slate-900 p-6 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm">
+                <div className="bg-[#e4dace] dark:bg-slate-900 p-6 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm">
                     <div className="flex items-center gap-3 mb-2">
                         <div className="w-10 h-10 rounded-lg bg-teal-100 dark:bg-teal-900/30 flex items-center justify-center">
                             <span className="material-icons text-teal-600">medical_services</span>
@@ -230,7 +230,7 @@ const UsersManagement = () => {
             </div>
 
             {/* Filters and Search */}
-            <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm mb-6">
+            <div className="bg-[#e4dace] dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm mb-6">
                 <div className="p-6 border-b border-slate-200 dark:border-slate-800">
                     <div className="flex flex-col md:flex-row gap-4">
                         <div className="flex-1 relative">
@@ -269,7 +269,7 @@ const UsersManagement = () => {
                 {/* Users Table */}
                 <div className="overflow-x-auto">
                     <table className="w-full">
-                        <thead className="bg-slate-50 dark:bg-slate-800/50 text-[10px] font-bold uppercase text-slate-400">
+                        <thead className="bg-[#e4dace] dark:bg-slate-800/50 text-[10px] font-bold uppercase text-slate-500">
                             <tr>
                                 <th className="px-6 py-3 text-left">User</th>
                                 <th className="px-6 py-3 text-left">Email</th>
@@ -280,7 +280,7 @@ const UsersManagement = () => {
                                 <th className="px-6 py-3 text-right">Actions</th>
                             </tr>
                         </thead>
-                        <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+                        <tbody className="bg-[#f3efe5] dark:bg-slate-900 divide-y divide-slate-100 dark:divide-slate-800">
                             {loading ? (
                                 <tr>
                                     <td colSpan="7" className="px-6 py-12 text-center">
@@ -296,7 +296,7 @@ const UsersManagement = () => {
                                 </tr>
                             ) : (
                                 users.map((user) => (
-                                    <tr key={user._id} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/30 transition-colors">
+                                    <tr key={user._id} className="hover:bg-[#f3efe5] dark:hover:bg-slate-800/30 transition-colors">
                                         <td className="px-6 py-4">
                                             <div className="flex items-center gap-3">
                                                 <div className="w-10 h-10 rounded-full bg-[#1f3b61]/10 flex items-center justify-center text-[#1f3b61] text-sm font-bold ring-2 ring-white dark:ring-slate-800">

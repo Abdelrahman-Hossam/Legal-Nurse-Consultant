@@ -169,10 +169,6 @@ const ClientsList = () => {
                                 watermark={pagesTopBarWatermarkWord('Clients')}
                             >
                                 <div className={`flex flex-wrap items-center gap-3 ${pagesTopBarUiSansClass}`}>
-                                    <button type="button" onClick={handleExportCSV} className={pagesTopBarSecondaryClass}>
-                                        <span className="material-icons text-sm">file_download</span>
-                                        Export CSV
-                                    </button>
                                     <button
                                         type="button"
                                         onClick={() => {
@@ -191,12 +187,16 @@ const ClientsList = () => {
                                         <span className="material-icons text-sm">person_add</span>
                                         New Client
                                     </button>
+                                    <button type="button" onClick={handleExportCSV} className={pagesTopBarSecondaryClass}>
+                                        <span className="material-icons text-sm">file_download</span>
+                                        Export CSV
+                                    </button>
                                 </div>
                             </PagesTopBar>
                         </div>
 
             {/* Search & Filter Bar */}
-            <div className="bg-white dark:bg-slate-800/50 p-4 rounded-xl border border-slate-200 dark:border-[#0891b2]/10 mb-6 flex flex-wrap items-center gap-4">
+            <div className="bg-[#e4dace] dark:bg-slate-800/50 p-4 rounded-xl border border-slate-200 dark:border-[#0891b2]/10 mb-6 flex flex-wrap items-center gap-4">
                 <div className="relative flex-1 min-w-[300px]">
                     <span className="material-icons absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-lg">search</span>
                     <input
@@ -222,11 +222,11 @@ const ClientsList = () => {
             </div>
 
             {/* Clients Table */}
-            <div className="bg-white dark:bg-slate-800/40 rounded-xl border border-slate-200 dark:border-[#0891b2]/10 shadow-sm overflow-hidden">
+            <div className="bg-[#f3efe5] dark:bg-slate-800/40 rounded-xl border border-slate-200 dark:border-[#0891b2]/10 shadow-sm overflow-hidden">
                 <div className="overflow-x-auto">
                     <table className="w-full text-left border-collapse">
                         <thead>
-                            <tr className="bg-slate-50 dark:bg-[#0891b2]/5 border-b border-slate-200 dark:border-slate-700">
+                            <tr className="bg-[#e4dace] dark:bg-[#0891b2]/5 border-b border-slate-200 dark:border-slate-700">
                                 <th className="px-6 py-4 text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
                                     Client & Firm
                                 </th>
@@ -241,7 +241,7 @@ const ClientsList = () => {
                                 </th>
                             </tr>
                         </thead>
-                        <tbody className="divide-y divide-slate-100 dark:divide-slate-700/50">
+                        <tbody className="bg-[#f3efe5] dark:bg-slate-900 divide-y divide-slate-100 dark:divide-slate-700/50">
                             {loading ? (
                                 <tr>
                                     <td colSpan="4" className="px-6 py-12 text-center text-slate-500">
@@ -257,7 +257,7 @@ const ClientsList = () => {
                                 </tr>
                             ) : (
                                 clients.map((client, index) => (
-                                    <tr key={client._id} className="hover:bg-slate-50 dark:hover:bg-[#0891b2]/5 transition-colors group">
+                                    <tr key={client._id} className="hover:bg-[#f3efe5] dark:hover:bg-[#0891b2]/5 transition-colors group">
                                         <td className="px-6 py-4">
                                             <div className="flex items-center">
                                                 <div className={`w-10 h-10 rounded-full ${getColorClass(index)} flex items-center justify-center font-bold text-sm`}>
@@ -312,7 +312,7 @@ const ClientsList = () => {
                 </div>
 
                 {/* Pagination */}
-                <div className="px-6 py-4 bg-slate-50 dark:bg-[#0891b2]/5 flex items-center justify-between border-t border-slate-200 dark:border-slate-700">
+                <div className="px-6 py-4 bg-[#f3efe5] dark:bg-[#0891b2]/5 flex items-center justify-between border-t border-slate-200 dark:border-slate-700">
                     <p className="text-xs text-slate-500 dark:text-slate-400">
                         Showing <span className="font-bold text-slate-700 dark:text-slate-200">{clients.length > 0 ? 1 : 0}</span> to{' '}
                         <span className="font-bold text-slate-700 dark:text-slate-200">{clients.length}</span> of{' '}
@@ -340,7 +340,7 @@ const ClientsList = () => {
 
             {/* System Stats Footer */}
             <div className="mt-8 grid grid-cols-1 md:grid-cols-3 gap-6">
-                <div className="bg-white dark:bg-slate-800/40 p-4 rounded-xl border border-slate-200 dark:border-[#0891b2]/10 flex items-center">
+                <div className="bg-[#e4dace] dark:bg-slate-800/40 p-4 rounded-xl border border-slate-200 dark:border-[#0891b2]/10 flex items-center">
                     <div className="p-3 bg-[#0891b2]/10 rounded-lg text-[#0891b2] mr-4">
                         <span className="material-icons">handshake</span>
                     </div>
@@ -349,7 +349,7 @@ const ClientsList = () => {
                         <p className="text-xl font-bold text-slate-900 dark:text-white">{stats.total || 0}</p>
                     </div>
                 </div>
-                <div className="bg-white dark:bg-slate-800/40 p-4 rounded-xl border border-slate-200 dark:border-[#0891b2]/10 flex items-center">
+                <div className="bg-[#e4dace] dark:bg-slate-800/40 p-4 rounded-xl border border-slate-200 dark:border-[#0891b2]/10 flex items-center">
                     <div className="p-3 bg-emerald-500/10 rounded-lg text-emerald-500 mr-4">
                         <span className="material-icons">trending_up</span>
                     </div>
@@ -358,7 +358,7 @@ const ClientsList = () => {
                         <p className="text-xl font-bold text-slate-900 dark:text-white">+12.4%</p>
                     </div>
                 </div>
-                <div className="bg-white dark:bg-slate-800/40 p-4 rounded-xl border border-slate-200 dark:border-[#0891b2]/10 flex items-center">
+                <div className="bg-[#e4dace] dark:bg-slate-800/40 p-4 rounded-xl border border-slate-200 dark:border-[#0891b2]/10 flex items-center">
                     <div className="p-3 bg-amber-500/10 rounded-lg text-amber-500 mr-4">
                         <span className="material-icons">verified</span>
                     </div>

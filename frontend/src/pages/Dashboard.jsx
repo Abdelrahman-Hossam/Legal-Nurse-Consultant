@@ -286,7 +286,7 @@ const Dashboard = () => {
         {stats.map((stat, index) => (
           <div
             key={index}
-            className="bg-white dark:bg-slate-900 p-6 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm"
+            className="bg-[#f3efe5] dark:bg-slate-900 p-6 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm"
           >
             <div className="flex justify-between items-start mb-4">
               <div
@@ -320,8 +320,8 @@ const Dashboard = () => {
       {/* Main Content Row */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         {/* Recent Cases Table */}
-        <div className="lg:col-span-2 bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
-          <div className="px-6 py-5 border-b border-slate-200 dark:border-slate-800 flex justify-between items-center">
+        <div className="lg:col-span-2 bg-[#f3efe5] dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
+          <div className="px-6 py-5 border-b border-slate-200 dark:border-slate-800 flex justify-between items-center bg-[#e4dace] dark:bg-slate-900/80">
             <h2 className="font-bold text-lg text-slate-800 dark:text-white">
               Recent Cases
             </h2>
@@ -343,7 +343,7 @@ const Dashboard = () => {
               </div>
             ) : (
               <table className="w-full text-left">
-                <thead className="bg-slate-50 dark:bg-slate-800/50 text-[10px] font-bold uppercase text-slate-400">
+                <thead className="bg-[#e4dace] dark:bg-slate-800/50 text-[10px] font-bold uppercase text-slate-500">
                   <tr>
                     <th className="px-6 py-3 tracking-wider">Case Name / ID</th>
                     <th className="px-6 py-3 tracking-wider">Attorney</th>
@@ -356,7 +356,7 @@ const Dashboard = () => {
                   {recentCases.map((caseItem, index) => (
                     <tr
                       key={index}
-                      className="hover:bg-slate-50/50 dark:hover:bg-slate-800/30 transition-colors cursor-pointer"
+                      className="hover:bg-[#e9dfd3] dark:hover:bg-slate-800/30 transition-colors cursor-pointer"
                       onClick={() => navigate(`/cases/${caseItem.id}`)}
                     >
                       <td className="px-6 py-4">
@@ -394,13 +394,13 @@ const Dashboard = () => {
         </div>
 
         {/* Upcoming Deadlines Widget */}
-        <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col">
-          <div className="px-6 py-5 border-b border-slate-200 dark:border-slate-800">
+        <div className="bg-[#f3efe5] dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col">
+          <div className="px-6 py-5 border-b border-slate-200 dark:border-slate-800 bg-[#e4dace] dark:bg-slate-900/80">
             <h2 className="font-bold text-lg text-slate-800 dark:text-white">
               Upcoming Deadlines
             </h2>
           </div>
-          <div className="flex-1 p-6 space-y-5">
+          <div className="flex-1 p-6 space-y-5 bg-[#f3efe5] dark:bg-slate-900">
             {loading ? (
               <div className="flex justify-center items-center py-12">
                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#0891b2]"></div>
@@ -416,7 +416,7 @@ const Dashboard = () => {
                   className={`flex gap-4 items-start border-l-2 ${deadline.urgent ? "border-red-500" : "border-[#1f3b61]"} pl-4 py-1`}
                 >
                   <div
-                    className={`${deadline.urgent ? "bg-red-50 dark:bg-red-900/20 text-red-600" : "bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-slate-300"} p-2 rounded text-center min-w-[50px]`}
+                    className={`${deadline.urgent ? "bg-red-50 dark:bg-red-900/20 text-red-600" : "bg-[#e4dace] dark:bg-slate-800 text-slate-600 dark:text-slate-300"} p-2 rounded text-center min-w-[50px]`}
                   >
                     <p className="text-[10px] font-bold uppercase">
                       {deadline.date.month}
@@ -437,10 +437,10 @@ const Dashboard = () => {
               ))
             )}
           </div>
-          <div className="p-4 border-t border-slate-100 dark:border-slate-800">
+          <div className="p-4 border-t border-slate-200 dark:border-slate-800 bg-[#f3efe5] dark:bg-slate-900">
             <button
               onClick={() => navigate("/tasks")}
-              className="w-full py-2 bg-slate-50 dark:bg-slate-800 text-slate-700 dark:text-slate-300 text-xs font-bold rounded-lg hover:bg-slate-100 transition-colors"
+              className="w-full py-2 bg-[#e4dace] dark:bg-slate-800 text-slate-700 dark:text-slate-300 text-xs font-bold rounded-lg hover:bg-[#ddd1c3] transition-colors"
             >
               View Full Calendar
             </button>

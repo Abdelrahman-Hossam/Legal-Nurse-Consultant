@@ -122,7 +122,7 @@ In production, this would download the full PDF report.
             {reports.length > 0 ? (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     {reports.map((report) => (
-                        <div key={report._id} className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-6 hover:shadow-lg transition-all group">
+                        <div key={report._id} className="bg-[#e4dace] dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-6 hover:shadow-lg transition-all group">
                             <div className="flex items-start justify-between mb-4">
                                 <div className="w-12 h-12 bg-[#0891b2]/10 rounded-lg flex items-center justify-center">
                                     <span className="material-icons text-[#0891b2]">{getReportIcon(report.type)}</span>
@@ -177,7 +177,7 @@ In production, this would download the full PDF report.
                     ))}
                 </div>
             ) : (
-                <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-12 text-center">
+                <div className="bg-[#e4dace] dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-12 text-center">
                     <div className="w-16 h-16 bg-slate-100 dark:bg-slate-800 rounded-full flex items-center justify-center mx-auto mb-4">
                         <span className="material-icons text-slate-400 text-3xl">description</span>
                     </div>

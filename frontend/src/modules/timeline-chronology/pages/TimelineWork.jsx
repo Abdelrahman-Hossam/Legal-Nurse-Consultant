@@ -145,7 +145,7 @@ const TimelineWork = () => {
                 <section className="p-8 pb-4">
                     <div className="grid grid-cols-4 gap-4 mb-8">
                         {stats.map((stat, idx) => (
-                            <div key={idx} className="bg-white dark:bg-neutral-dark p-4 rounded-xl border border-slate-200 dark:border-border-dark">
+                            <div key={idx} className="bg-[#e4dace] dark:bg-neutral-dark p-4 rounded-xl border border-slate-200 dark:border-border-dark">
                                 <p className="text-slate-400 text-xs font-medium uppercase tracking-wider">{stat.label}</p>
                                 <div className="flex items-end justify-between mt-1">
                                     <span className={`text-2xl font-bold ${stat.valueColor === 'amber' ? 'text-amber-500' : ''}`}>{stat.value}</span>
@@ -218,7 +218,7 @@ const TimelineWork = () => {
                                 return (
                                     <div
                                         key={item._id || idx}
-                                        className="group bg-white dark:bg-neutral-dark border border-slate-200 dark:border-border-dark p-4 rounded-xl hover:border-primary/50 transition-all duration-200"
+                                        className="group bg-[#e4dace] dark:bg-neutral-dark border border-slate-200 dark:border-border-dark p-4 rounded-xl hover:border-primary/50 transition-all duration-200"
                                     >
                                         <div className="flex items-center justify-between">
                                             <div className="flex items-center gap-6 flex-1">
